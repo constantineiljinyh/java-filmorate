@@ -113,6 +113,7 @@ class UserControllerTest {
         Assertions.assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
         Assertions.assertEquals("Дата рождения не может быть в будущем", exception.getReason());
     }
+
     @Test
     void getALLUsers_ReturnsAllUsers() {
         User user1 = new User();

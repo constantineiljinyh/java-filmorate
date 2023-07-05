@@ -6,8 +6,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class JavafilmorateApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(JavafilmorateApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(JavafilmorateApplication.class, args);
+    }
 
 }
