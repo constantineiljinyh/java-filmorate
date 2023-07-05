@@ -172,6 +172,7 @@ class FilmControllerTest {
 
         Assertions.assertEquals(expectedFilms, actualFilms);
     }
+
     @Test
     void getALLFilms_ReturnsEmptyListOfFilms() {
         List<Film> films = filmController.getALLFilms();
