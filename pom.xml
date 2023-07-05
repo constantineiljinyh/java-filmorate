@@ -11,8 +11,8 @@
 	<groupId>ru.yandex.practicum</groupId>
 	<artifactId>filmorate</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>javafilmorate</name>
-	<description>Demo project for Spring Boot</description>
+	<name>filmorate</name>
+	<description> Spring Web</description>
 	<properties>
 		<java.version>11</java.version>
 	</properties>
