@@ -12,6 +12,7 @@ import org.springframework.web.server.ResponseStatusException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
+import javax.validation.Valid;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,10 +25,10 @@ import java.util.Map;
 public class FilmController {
 
     private final Map<Integer, Film> filmsMap = new HashMap<>();
-    protected int idFilm = 1;
+    private int idFilm = 1;
 
     @PostMapping()
-    public Film addFilm(@RequestBody Film film) {
+    public Film addFilm(@Valid @RequestBody Film film) {
         try {
             validateFilm(film);
             film.setId(idFilm++);
@@ -49,7 +50,7 @@ public class FilmController {
     }
 
     @PutMapping()
-    public Film updateFilm(@RequestBody Film updatedFilm) {
+    public Film updateFilm(@Valid @RequestBody Film updatedFilm) {
         try {
             validateFilm(updatedFilm);
             if (filmsMap.containsKey(updatedFilm.getId())) {
@@ -66,20 +67,8 @@ public class FilmController {
     }
 
     private void validateFilm(Film film) {
-        if (film.getName() == null || film.getName().isEmpty()) {
-            throw new ValidationException("Название не может быть пустым");
-        }
-
-        if (film.getDescription() == null || film.getDescription().length() > 200) {
-            throw new ValidationException("Максимальная длина описания — 200 символов");
-        }
-
-        if (film.getReleaseDate() == null || film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
-            throw new ValidationException("Неправильная дата релиза");
-        }
-
-        if (film.getDuration() <= 0) {
-            throw new ValidationException("Продолжительность фильма должна быть положительной");
+        if (film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
+            throw new ValidationException("Дата релиза не может быть до 28.12.1895");
         }
     }
 }

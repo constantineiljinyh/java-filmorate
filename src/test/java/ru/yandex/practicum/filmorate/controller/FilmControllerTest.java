@@ -21,7 +21,7 @@ class FilmControllerTest {
     }
 
     @Test
-    void addFilm_ValidFilm() {
+    void addFilmValidFilm() {
         Film validFilm = new Film();
         validFilm.setName("Film Name");
         validFilm.setDescription("Film Description");
@@ -35,22 +35,7 @@ class FilmControllerTest {
     }
 
     @Test
-    void addFilm_EmptyName() {
-        Film filmWithEmptyName = new Film();
-        filmWithEmptyName.setName("");
-        filmWithEmptyName.setDescription("Film Description");
-        filmWithEmptyName.setReleaseDate(LocalDate.of(2022, 1, 1));
-        filmWithEmptyName.setDuration(120);
-
-        ResponseStatusException exception = Assertions.assertThrows(ResponseStatusException.class, () ->
-                filmController.addFilm(filmWithEmptyName));
-
-        Assertions.assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
-        Assertions.assertEquals("Название не может быть пустым", exception.getReason());
-    }
-
-    @Test
-    void addFilm_InvalidReleaseDate() {
+    void addFilmInvalidReleaseDate() {
         Film filmWithInvalidReleaseDate = new Film();
         filmWithInvalidReleaseDate.setName("Film Name");
         filmWithInvalidReleaseDate.setDescription("Film Description");
@@ -61,43 +46,11 @@ class FilmControllerTest {
                 filmController.addFilm(filmWithInvalidReleaseDate));
 
         Assertions.assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
-        Assertions.assertEquals("Неправильная дата релиза", exception.getReason());
+        Assertions.assertEquals("Дата релиза не может быть до 28.12.1895", exception.getReason());
     }
 
     @Test
-    void addFilm_NegativeDuration() {
-        Film filmWithNegativeDuration = new Film();
-        filmWithNegativeDuration.setName("Film Name");
-        filmWithNegativeDuration.setDescription("Film Description");
-        filmWithNegativeDuration.setReleaseDate(LocalDate.of(2022, 1, 1));
-        filmWithNegativeDuration.setDuration(-120);
-
-        ResponseStatusException exception = Assertions.assertThrows(ResponseStatusException.class, () ->
-                filmController.addFilm(filmWithNegativeDuration));
-
-        Assertions.assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
-        Assertions.assertEquals("Продолжительность фильма должна быть положительной", exception.getReason());
-    }
-
-    @Test
-    void addFilm_LongDescription() {
-        String longDescription = "A".repeat(201);
-
-        Film filmWithLongDescription = new Film();
-        filmWithLongDescription.setName("Film Name");
-        filmWithLongDescription.setDescription(longDescription);
-        filmWithLongDescription.setReleaseDate(LocalDate.of(2022, 1, 1));
-        filmWithLongDescription.setDuration(120);
-
-        ResponseStatusException exception = Assertions.assertThrows(ResponseStatusException.class, () ->
-                filmController.addFilm(filmWithLongDescription));
-
-        Assertions.assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
-        Assertions.assertEquals("Максимальная длина описания — 200 символов", exception.getReason());
-    }
-
-    @Test
-    void addFilm_NullFilm() {
+    void addFilmNullFilm() {
         ResponseStatusException exception = Assertions.assertThrows(ResponseStatusException.class, () ->
                 filmController.addFilm(null));
 
@@ -106,7 +59,7 @@ class FilmControllerTest {
     }
 
     @Test
-    void updateFilm_ValidFilm() {
+    void updateFilmValidFilm() {
         Film existingFilm = new Film();
         existingFilm.setId(1);
         existingFilm.setName("Film Name");
@@ -133,7 +86,7 @@ class FilmControllerTest {
     }
 
     @Test
-    void updateFilm_NonExistingFilm() {
+    void updateFilmNonExistingFilm() {
         Film nonExistingFilm = new Film();
         nonExistingFilm.setId(100);
         nonExistingFilm.setName("Film");
@@ -149,7 +102,7 @@ class FilmControllerTest {
     }
 
     @Test
-    void getALLFilms_ReturnsListOfFilms() {
+    void getALLFilmsReturnsListOfFilms() {
         Film film1 = new Film();
         film1.setId(1);
         film1.setName("Фильм 1");
@@ -174,7 +127,7 @@ class FilmControllerTest {
     }
 
     @Test
-    void getALLFilms_ReturnsEmptyListOfFilms() {
+    void getALLFilmsReturnsEmptyListOfFilms() {
         List<Film> films = filmController.getALLFilms();
 
         Assertions.assertTrue(films.isEmpty());

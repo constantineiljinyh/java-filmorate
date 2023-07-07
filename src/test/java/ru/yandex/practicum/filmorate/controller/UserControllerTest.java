@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.controller;
 
-
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,65 +20,7 @@ class UserControllerTest {
     }
 
     @Test
-    void addUser_EmptyEmail() {
-        User userWithEmptyEmail = new User();
-        userWithEmptyEmail.setLogin("user123");
-        userWithEmptyEmail.setName("Name");
-        userWithEmptyEmail.setBirthday(LocalDate.of(1990, 5, 15));
-
-        ResponseStatusException exception = Assertions.assertThrows(ResponseStatusException.class, () ->
-                userController.addUser(userWithEmptyEmail));
-
-        Assertions.assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
-        Assertions.assertEquals("Электронная почта не может быть пустой и должна содержать символ @", exception.getReason());
-    }
-
-    @Test
-    void addUser_InvalidEmailFormat() {
-        User userWithInvalidEmail = new User();
-        userWithInvalidEmail.setLogin("user123");
-        userWithInvalidEmail.setName("Name");
-        userWithInvalidEmail.setBirthday(LocalDate.of(1990, 5, 15));
-        userWithInvalidEmail.setEmail("blabla");
-
-        ResponseStatusException exception = Assertions.assertThrows(ResponseStatusException.class, () ->
-                userController.addUser(userWithInvalidEmail));
-
-        Assertions.assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
-        Assertions.assertEquals("Электронная почта не может быть пустой и должна содержать символ @", exception.getReason());
-    }
-
-    @Test
-    void addUser_EmptyLogin() {
-        User userWithEmptyLogin = new User();
-        userWithEmptyLogin.setEmail("user@example.com");
-        userWithEmptyLogin.setName("Name");
-        userWithEmptyLogin.setBirthday(LocalDate.of(1990, 5, 15));
-
-        ResponseStatusException exception = Assertions.assertThrows(ResponseStatusException.class, () ->
-                userController.addUser(userWithEmptyLogin));
-
-        Assertions.assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
-        Assertions.assertEquals("Логин не может быть пустым и содержать пробелы", exception.getReason());
-    }
-
-    @Test
-    void addUser_LoginWithSpaces() {
-        User userWithSpacesInLogin = new User();
-        userWithSpacesInLogin.setEmail("user@example.com");
-        userWithSpacesInLogin.setLogin("user 123");
-        userWithSpacesInLogin.setName("Name");
-        userWithSpacesInLogin.setBirthday(LocalDate.of(1990, 5, 15));
-
-        ResponseStatusException exception = Assertions.assertThrows(ResponseStatusException.class, () ->
-                userController.addUser(userWithSpacesInLogin));
-
-        Assertions.assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
-        Assertions.assertEquals("Логин не может быть пустым и содержать пробелы", exception.getReason());
-    }
-
-    @Test
-    void addUser_EmptyName() {
+    void addUserEmptyName() {
         User userWithEmptyName = new User();
         userWithEmptyName.setEmail("user@example.com");
         userWithEmptyName.setLogin("user123");
@@ -91,7 +32,7 @@ class UserControllerTest {
     }
 
     @Test
-    void addUser_NullUser() {
+    void addUserNullUser() {
         ResponseStatusException exception = Assertions.assertThrows(ResponseStatusException.class, () ->
                 userController.addUser(null));
 
@@ -100,22 +41,7 @@ class UserControllerTest {
     }
 
     @Test
-    void addUser_FutureBirthday() {
-        User userWithFutureBirthday = new User();
-        userWithFutureBirthday.setEmail("user@example.com");
-        userWithFutureBirthday.setLogin("user123");
-        userWithFutureBirthday.setName("Name");
-        userWithFutureBirthday.setBirthday(LocalDate.now().plusDays(1));
-
-        ResponseStatusException exception = Assertions.assertThrows(ResponseStatusException.class, () ->
-                userController.addUser(userWithFutureBirthday));
-
-        Assertions.assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
-        Assertions.assertEquals("Дата рождения не может быть в будущем", exception.getReason());
-    }
-
-    @Test
-    void getALLUsers_ReturnsAllUsers() {
+    void getALLUsersReturnsAllUsers() {
         User user1 = new User();
         user1.setEmail("user1@example.com");
         user1.setLogin("user123");
@@ -138,7 +64,7 @@ class UserControllerTest {
     }
 
     @Test
-    void updateUser_ExistingUser() {
+    void updateUserExistingUser() {
         User existingUser = new User();
         existingUser.setEmail("user@example.com");
         existingUser.setLogin("user123");
@@ -167,7 +93,7 @@ class UserControllerTest {
     }
 
     @Test
-    void updateUser_NonExistingUser() {
+    void updateUserNonExistingUser() {
         User nonExistingUser = new User();
         nonExistingUser.setId(123);
         nonExistingUser.setEmail("user@example.com");
