@@ -3,9 +3,11 @@ package ru.yandex.practicum.filmorate.controller;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -15,8 +17,10 @@ class UserControllerTest {
     private UserController userController;
 
     @BeforeEach
-    public void setUP() {
-        userController = new UserController();
+    public void setUp() {
+        MockitoAnnotations.openMocks(this);
+        UserService userService = new UserService();
+        userController = new UserController(userService);
     }
 
     @Test
@@ -37,7 +41,7 @@ class UserControllerTest {
                 userController.addUser(null));
 
         Assertions.assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
-        Assertions.assertEquals("Ошибка добавления пользователя: Передан некорректный пользователь", exception.getReason());
+        Assertions.assertEquals("Пустой пользователь", exception.getReason());
     }
 
     @Test
@@ -56,7 +60,7 @@ class UserControllerTest {
         user2.setBirthday(LocalDate.of(1995, 8, 20));
         userController.addUser(user2);
 
-        List<User> allUsers = userController.getALLUsers();
+        List<User> allUsers = userController.getAllUsers();
 
         Assertions.assertEquals(2, allUsers.size());
         Assertions.assertTrue(allUsers.contains(user1));
@@ -87,7 +91,7 @@ class UserControllerTest {
         Assertions.assertEquals(updatedUser.getName(), returnedUser.getName());
         Assertions.assertEquals(updatedUser.getBirthday(), returnedUser.getBirthday());
 
-        List<User> allUsers = userController.getALLUsers();
+        List<User> allUsers = userController.getAllUsers();
         Assertions.assertEquals(1, allUsers.size());
         Assertions.assertTrue(allUsers.contains(returnedUser));
     }

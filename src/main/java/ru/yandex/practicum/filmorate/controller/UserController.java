@@ -11,62 +11,48 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.Valid;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+
 
 @Slf4j
 @RestController
 @RequestMapping("/users")
 public class UserController {
-    private final Map<Integer, User> usersMap = new HashMap<>();
-    private int idUser = 1;
+    private final UserService userService;
+
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
 
     @PostMapping()
     public User addUser(@Valid @RequestBody User user) {
         try {
-            validateUser(user);
-            user.setId(idUser++);
-            usersMap.put(user.getId(), user);
-            log.info("Пользователь создан: {}", user);
-            return user;
+            User addedUser = userService.addUser(user);
+            log.info("Пользователь создан: {}", addedUser);
+            return addedUser;
         } catch (ValidationException e) {
             log.error("Ошибка добавления пользователя: {}", e.getMessage());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
-        } catch (NullPointerException e) {
-            log.error("Ошибка добавления пользователя: Передан пустой пользователь");
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ошибка добавления пользователя: Передан некорректный пользователь");
         }
     }
 
     @GetMapping
-    public List<User> getALLUsers() {
-        return new ArrayList<>(usersMap.values());
+    public List<User> getAllUsers() {
+        return userService.getAllUsers();
     }
 
     @PutMapping
     public User updateUser(@Valid @RequestBody User updatedUser) {
         try {
-            validateUser(updatedUser);
-            if (usersMap.containsKey(updatedUser.getId())) {
-                usersMap.put(updatedUser.getId(), updatedUser);
-                log.info("Пользователь обновлен: {}", updatedUser);
-                return updatedUser;
-            } else {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Такого пользователя нет");
-            }
+            User updated = userService.updateUser(updatedUser);
+            log.info("Пользователь обновлен: {}", updated);
+            return updated;
         } catch (ValidationException e) {
             log.error("Ошибка обновления пользователя: {}", e.getMessage());
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
-        }
-    }
-
-    private void validateUser(User user) {
-        if (user.getName() == null || user.getName().isEmpty()) {
-            user.setName(user.getLogin());
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         }
     }
 }

@@ -3,9 +3,11 @@ package ru.yandex.practicum.filmorate.controller;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -17,7 +19,9 @@ class FilmControllerTest {
 
     @BeforeEach
     public void setUP() {
-        filmController = new FilmController();
+        MockitoAnnotations.openMocks(this);
+        FilmService filmService = new FilmService();
+        filmController = new FilmController(filmService);
     }
 
     @Test
@@ -121,14 +125,14 @@ class FilmControllerTest {
 
         List<Film> expectedFilms = Arrays.asList(film1, film2);
 
-        List<Film> actualFilms = filmController.getALLFilms();
+        List<Film> actualFilms = filmController.getAllFilms();
 
         Assertions.assertEquals(expectedFilms, actualFilms);
     }
 
     @Test
     void getALLFilmsReturnsEmptyListOfFilms() {
-        List<Film> films = filmController.getALLFilms();
+        List<Film> films = filmController.getAllFilms();
 
         Assertions.assertTrue(films.isEmpty());
     }

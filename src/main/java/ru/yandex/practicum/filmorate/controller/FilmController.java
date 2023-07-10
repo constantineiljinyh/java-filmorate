@@ -11,64 +11,49 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
 
 import javax.validation.Valid;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+
 
 @Slf4j
 @RestController
 @RequestMapping("/films")
 public class FilmController {
 
-    private final Map<Integer, Film> filmsMap = new HashMap<>();
-    private int idFilm = 1;
+    private final FilmService filmService;
+
+    public FilmController(FilmService filmService) {
+        this.filmService = filmService;
+    }
 
     @PostMapping()
     public Film addFilm(@Valid @RequestBody Film film) {
         try {
-            validateFilm(film);
-            film.setId(idFilm++);
-            filmsMap.put(film.getId(), film);
-            log.info("Фильм добавлен: {}", film);
-            return film;
+            Film addedFilm = filmService.addFilm(film);
+            log.info("Фильм добавлен: {}", addedFilm);
+            return addedFilm;
         } catch (ValidationException e) {
             log.error("Ошибка добавления фильма: {}", e.getMessage());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
-        } catch (NullPointerException e) {
-            log.error("Ошибка добавления фильма: Передан пустой фильм");
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ошибка добавления фильма: Передан пустой фильм");
         }
     }
 
     @GetMapping()
-    public List<Film> getALLFilms() {
-        return new ArrayList<>(filmsMap.values());
+    public List<Film> getAllFilms() {
+        return filmService.getAllFilms();
     }
 
     @PutMapping()
     public Film updateFilm(@Valid @RequestBody Film updatedFilm) {
         try {
-            validateFilm(updatedFilm);
-            if (filmsMap.containsKey(updatedFilm.getId())) {
-                filmsMap.put(updatedFilm.getId(), updatedFilm);
-                log.info("Фильм обновлен: {}", updatedFilm);
-                return updatedFilm;
-            } else {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Такого фильма нет");
-            }
+            Film updated = filmService.updateFilm(updatedFilm);
+            log.info("Фильм обновлен: {}", updated);
+            return updated;
         } catch (ValidationException e) {
             log.error("Ошибка обновления фильма: {}", e.getMessage());
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
-        }
-    }
-
-    private void validateFilm(Film film) {
-        if (film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
-            throw new ValidationException("Дата релиза не может быть до 28.12.1895");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         }
     }
 }
