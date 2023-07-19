@@ -1,46 +1,23 @@
 package ru.yandex.practicum.filmorate.service;
 
-import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-@Service
-public class UserService {
-    private final Map<Integer, User> usersMap = new HashMap<>();
-    private int idUser = 1;
+public interface UserService {
+    User addUser(User user);
 
-    public User addUser(User user) {
-        validateUser(user);
-        user.setId(idUser++);
-        usersMap.put(user.getId(), user);
-        return user;
-    }
+    List<User> getAllUsers();
 
-    public List<User> getAllUsers() {
-        return new ArrayList<>(usersMap.values());
-    }
+    User updateUser(User updatedUser);
 
-    public User updateUser(User updatedUser) {
-        validateUser(updatedUser);
-        if (usersMap.containsKey(updatedUser.getId())) {
-            usersMap.put(updatedUser.getId(), updatedUser);
-            return updatedUser;
-        } else {
-            throw new ValidationException("Такого пользователя нет");
-        }
-    }
+    void addFriend(Integer userId, Integer friendId);
 
-    private void validateUser(User user) {
-        if (user == null) {
-            throw new ValidationException("Пустой пользователь");
-        }
-        if (user.getName() == null || user.getName().isBlank()) {
-            user.setName(user.getLogin());
-        }
-    }
+    void removeFriend(Integer userId, Integer friendId);
+
+    List<User> getFriendsList(Integer userId);
+
+    List<User> getCommonFriends(Integer userId, Integer otherUserId);
+
+    User getUserById(Integer userId);
 }

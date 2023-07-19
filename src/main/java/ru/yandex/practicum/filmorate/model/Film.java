@@ -15,6 +15,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Film {
+    @Positive(message = "id должно быть положительным")
     private Integer id;
 
     @NotBlank(message = "Название не может быть пустым")
@@ -31,4 +32,6 @@ public class Film {
     @NotNull(message = "Продолжительность фильма не может быть пустой")
     @Positive(message = "Продолжительность фильма должна быть положительной")
     private Integer duration;
+
+    private int likesCount;
 }
