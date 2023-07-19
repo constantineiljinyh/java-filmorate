@@ -154,7 +154,7 @@ class FilmControllerTest {
     }
 
     @Test
-    void SuccessfullyLikesFilm() {
+    void successfullyLikesFilm() {
         Film film = new Film();
         film.setId(1);
         film.setLikesCount(0);
@@ -190,7 +190,7 @@ class FilmControllerTest {
     }
 
     @Test
-    void SuccessFullyUnlikesFilm() {
+    void successFullyUnlikesFilm() {
         Film film = new Film();
         film.setId(1);
         film.setLikesCount(1);
