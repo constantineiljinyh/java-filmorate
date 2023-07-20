@@ -18,4 +18,6 @@ public interface FilmService {
     List<Film> getPopularFilms(int count);
 
     Film getFilmById(Integer filmId);
+
+    Film remove(Integer filmId);
 }

@@ -20,4 +20,6 @@ public interface UserService {
     List<User> getCommonFriends(Integer userId, Integer otherUserId);
 
     User getUserById(Integer userId);
+
+    User remove(Integer userId);
 }

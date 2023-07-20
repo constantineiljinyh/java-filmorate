@@ -1,6 +1,8 @@
 package ru.yandex.practicum.filmorate.storage;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.web.server.ResponseStatusException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
@@ -12,11 +14,14 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-public class InMemoryUserStorage implements UserStorage {
+public class InMemoryUserStorage implements Storage<User> {
     private final Map<Integer, User> usersMap = new HashMap<>();
     private int idUser = 1;
 
-    public User addUser(User user) {
+    public User add(User user) {
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Пустой пользователь");
+        }
         if (user.getFriends() == null) {
             user.setFriends(new HashSet<>());
         }
@@ -25,11 +30,11 @@ public class InMemoryUserStorage implements UserStorage {
         return user;
     }
 
-    public List<User> getAllUsers() {
+    public List<User> getAll() {
         return new ArrayList<>(usersMap.values());
     }
 
-    public User updateUser(User updatedUser) {
+    public User update(User updatedUser) {
         if (usersMap.containsKey(updatedUser.getId())) {
             usersMap.put(updatedUser.getId(), updatedUser);
             return updatedUser;
@@ -38,12 +43,20 @@ public class InMemoryUserStorage implements UserStorage {
         }
     }
 
-    public User getUserById(Integer userId) {
+    public User getById(Integer userId) {
         User user = usersMap.get(userId);
         if (user != null) {
             return user;
         } else {
             throw new NotFoundException("Пользователь с ID " + userId + " не найден");
         }
+    }
+
+    public User remove(Integer userId) {
+        User user = usersMap.remove(userId);
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь с ID " + userId + " не найден");
+        }
+        return user;
     }
 }

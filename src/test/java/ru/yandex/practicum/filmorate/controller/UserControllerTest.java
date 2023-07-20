@@ -11,7 +11,7 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.InMemoryUserService;
 import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.storage.Storage;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -21,7 +21,7 @@ class UserControllerTest {
 
     private UserService userService;
 
-    private UserStorage userStorage;
+    private Storage<User> userStorage;
 
     @BeforeEach
     public void setUp() {
@@ -49,6 +49,33 @@ class UserControllerTest {
 
         Assertions.assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
         Assertions.assertEquals("Пустой пользователь", exception.getReason());
+    }
+
+    @Test
+    void removeUserValidUserId() {
+        User userToRemove = new User();
+        userToRemove.setName("User to Remove");
+        userToRemove.setEmail("user@example.com");
+        userToRemove.setLogin("user123");
+        userToRemove.setBirthday(LocalDate.of(1990, 5, 15));
+
+        User createdUser = userController.addUser(userToRemove);
+        Integer userId = createdUser.getId();
+
+        User removedUser = userController.removeUser(userId);
+
+        Assertions.assertEquals(createdUser, removedUser);
+    }
+
+    @Test
+    void removeUserInvalidUserId() {
+        Integer nonExistentUserId = 1000;
+
+        ResponseStatusException exception = Assertions.assertThrows(ResponseStatusException.class, () ->
+                userController.removeUser(nonExistentUserId));
+
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, exception.getStatus());
+        Assertions.assertEquals("Пользователь с ID " + nonExistentUserId + " не найден", exception.getReason());
     }
 
     @Test
@@ -124,12 +151,12 @@ class UserControllerTest {
         User user1 = new User();
         user1.setId(1);
         user1.setName("User 1");
-        userStorage.addUser(user1);
+        userStorage.add(user1);
 
         User user2 = new User();
         user2.setId(2);
         user2.setName("User 2");
-        userStorage.addUser(user2);
+        userStorage.add(user2);
 
         userController.addFriend(1, 2);
 
@@ -143,12 +170,12 @@ class UserControllerTest {
         User user1 = new User();
         user1.setId(1);
         user1.setName("User 1");
-        userStorage.addUser(user1);
+        userStorage.add(user1);
 
         User user2 = new User();
         user2.setId(2);
         user2.setName("User 2");
-        userStorage.addUser(user2);
+        userStorage.add(user2);
 
         userController.addFriend(1, 2);
 
@@ -163,12 +190,12 @@ class UserControllerTest {
         User user1 = new User();
         user1.setId(1);
         user1.setName("User 1");
-        userStorage.addUser(user1);
+        userStorage.add(user1);
 
         User user2 = new User();
         user2.setId(2);
         user2.setName("User 2");
-        userStorage.addUser(user2);
+        userStorage.add(user2);
 
         userController.addFriend(1, 2);
 
@@ -183,12 +210,12 @@ class UserControllerTest {
         User user1 = new User();
         user1.setId(1);
         user1.setName("User 1");
-        userStorage.addUser(user1);
+        userStorage.add(user1);
 
         User user2 = new User();
         user2.setId(2);
         user2.setName("User 2");
-        userStorage.addUser(user2);
+        userStorage.add(user2);
 
         ValidationException exception = Assertions.assertThrows(ValidationException.class, () ->
                 userController.removeFriend(1, 2));
@@ -201,12 +228,12 @@ class UserControllerTest {
         User user1 = new User();
         user1.setId(1);
         user1.setName("User 1");
-        userStorage.addUser(user1);
+        userStorage.add(user1);
 
         User user2 = new User();
         user2.setId(2);
         user2.setName("User 2");
-        userStorage.addUser(user2);
+        userStorage.add(user2);
 
         userController.addFriend(1, 2);
 
@@ -228,17 +255,17 @@ class UserControllerTest {
         User user1 = new User();
         user1.setId(1);
         user1.setName("User 1");
-        userStorage.addUser(user1);
+        userStorage.add(user1);
 
         User user2 = new User();
         user2.setId(2);
         user2.setName("User 2");
-        userStorage.addUser(user2);
+        userStorage.add(user2);
 
         User user3 = new User();
         user3.setId(3);
         user3.setName("User 3");
-        userStorage.addUser(user3);
+        userStorage.add(user3);
 
         userController.addFriend(1, 2);
         userController.addFriend(1, 3);
@@ -254,17 +281,17 @@ class UserControllerTest {
         User user1 = new User();
         user1.setId(1);
         user1.setName("User 1");
-        userStorage.addUser(user1);
+        userStorage.add(user1);
 
         User user2 = new User();
         user2.setId(2);
         user2.setName("User 2");
-        userStorage.addUser(user2);
+        userStorage.add(user2);
 
         User user3 = new User();
         user3.setId(3);
         user3.setName("User 3");
-        userStorage.addUser(user3);
+        userStorage.add(user3);
 
         List<User> commonFriends = userController.getCommonFriends(1, 2);
         Assertions.assertEquals(0, commonFriends.size());

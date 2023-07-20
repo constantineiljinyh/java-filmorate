@@ -1,50 +1,71 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.Storage;
 
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
 
+@Slf4j
 @Service
 public class InMemoryFilmService implements FilmService {
-    private final FilmStorage filmStorage;
+    private final Storage<Film> filmStorage;
     private final UserService userService;
 
-    public InMemoryFilmService(FilmStorage filmStorage, UserService userService) {
+    public InMemoryFilmService(Storage<Film> filmStorage, UserService userService) {
         this.filmStorage = filmStorage;
         this.userService = userService;
     }
 
     public Film addFilm(Film film) {
-        validateFilm(film);
-        return filmStorage.addFilm(film);
+        try {
+            validateFilm(film);
+            Film addedFilm = filmStorage.add(film);
+            log.info("Фильм добавлен: {}", addedFilm);
+            return addedFilm;
+        } catch (ValidationException e) {
+            log.error("Ошибка добавления фильма: {}", e.getMessage());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
     }
 
     public List<Film> getAllFilms() {
-        return filmStorage.getAllFilms();
+        log.info("Получение всех фильмов");
+        return filmStorage.getAll();
     }
 
     public Film getFilmById(Integer filmId) {
-        return filmStorage.getFilmById(filmId);
+        log.info("Получение пользователя по ID: {}", filmId);
+        return filmStorage.getById(filmId);
     }
 
     public Film updateFilm(Film updatedFilm) {
-        validateFilm(updatedFilm);
-        return filmStorage.updateFilm(updatedFilm);
+        try {
+            validateFilm(updatedFilm);
+            Film updated = filmStorage.update(updatedFilm);
+            log.info("Фильм обновлен: {}", updated);
+            return updated;
+        } catch (ValidationException e) {
+            log.error("Ошибка обновления фильма: {}", e.getMessage());
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        }
     }
 
     public void likeFilm(Integer filmId, Integer userId) {
         User user = userService.getUserById(userId);
-        Film film = filmStorage.getFilmById(filmId);
+        Film film = filmStorage.getById(filmId);
         if (user != null && film != null) {
             film.setLikesCount(film.getLikesCount() + 1);
-            filmStorage.updateFilm(film);
+            log.info("Добавление лайка к фильму с ID {} от пользователя с ID {}", filmId, userId);
+            filmStorage.update(film);
         } else {
             throw new NotFoundException("Пользователь или фильм с не найден");
         }
@@ -52,12 +73,13 @@ public class InMemoryFilmService implements FilmService {
 
     public void unlikeFilm(Integer filmId, Integer userId) {
         User user = userService.getUserById(userId);
-        Film film = filmStorage.getFilmById(filmId);
+        Film film = filmStorage.getById(filmId);
         if (user != null && film != null) {
             int likesCount = film.getLikesCount();
             if (likesCount > 0) {
                 film.setLikesCount(likesCount - 1);
-                filmStorage.updateFilm(film);
+                log.info("Удаление лайка у фильма с ID {} от пользователя с ID {}", filmId, userId);
+                filmStorage.update(film);
             }
         } else {
             throw new NotFoundException("Пользователь или фильм с не найден");
@@ -65,9 +87,15 @@ public class InMemoryFilmService implements FilmService {
     }
 
     public List<Film> getPopularFilms(int count) {
-        List<Film> allFilms = filmStorage.getAllFilms();
+        List<Film> allFilms = filmStorage.getAll();
         allFilms.sort(Comparator.comparingInt(Film::getLikesCount).reversed());
+        log.info("Получение популярных фильмов ({} шт.)", count);
         return allFilms.subList(0, Math.min(count, allFilms.size()));
+    }
+
+    public Film remove(Integer filmId) {
+        log.info("Удаление фильма с ID {} ", filmId);
+        return filmStorage.remove(filmId);
     }
 
     private void validateFilm(Film film) {

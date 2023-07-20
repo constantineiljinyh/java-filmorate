@@ -12,10 +12,9 @@ import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.InMemoryFilmService;
 import ru.yandex.practicum.filmorate.service.InMemoryUserService;
 import ru.yandex.practicum.filmorate.service.UserService;
-import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
 import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.storage.Storage;
 
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -26,11 +25,11 @@ class FilmControllerTest {
 
     private FilmService filmService;
 
-    private FilmStorage filmStorage;
+    private Storage<Film> filmStorage;
 
     private UserService userService;
 
-    private UserStorage userStorage;
+    private Storage<User> userStorage;
 
     @BeforeEach
     public void setUP() {
@@ -107,6 +106,33 @@ class FilmControllerTest {
     }
 
     @Test
+    void removeFilmValidFilmId() {
+        Film filmToRemove = new Film();
+        filmToRemove.setName("Film to Remove");
+        filmToRemove.setDescription("Film to Remove Description");
+        filmToRemove.setReleaseDate(LocalDate.of(2022, 1, 1));
+        filmToRemove.setDuration(120);
+
+        Film addedFilm = filmController.addFilm(filmToRemove);
+        Integer filmId = addedFilm.getId();
+
+        Film removedFilm = filmController.removeFilm(filmId);
+
+        Assertions.assertEquals(addedFilm, removedFilm);
+    }
+
+    @Test
+    void removeFilmInvalidFilmId() {
+        Integer nonExistentFilmId = 1000;
+
+        ResponseStatusException exception = Assertions.assertThrows(ResponseStatusException.class, () ->
+                filmController.removeFilm(nonExistentFilmId));
+
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, exception.getStatus());
+        Assertions.assertEquals("Фильм с ID " + nonExistentFilmId + " не найден", exception.getReason());
+    }
+
+    @Test
     void updateFilmNonExistingFilm() {
         Film nonExistingFilm = new Film();
         nonExistingFilm.setId(100);
@@ -158,7 +184,7 @@ class FilmControllerTest {
         Film film = new Film();
         film.setId(1);
         film.setLikesCount(0);
-        filmStorage.addFilm(film);
+        filmStorage.add(film);
 
         User user = new User();
         user.setId(1);
@@ -166,7 +192,7 @@ class FilmControllerTest {
 
         filmService.likeFilm(1, 1);
 
-        Film likedFilm = filmStorage.getFilmById(1);
+        Film likedFilm = filmStorage.getById(1);
         Assertions.assertEquals(1, likedFilm.getLikesCount());
     }
 
@@ -184,7 +210,7 @@ class FilmControllerTest {
         Film film = new Film();
         film.setId(1);
         film.setLikesCount(0);
-        filmStorage.addFilm(film);
+        filmStorage.add(film);
 
         Assertions.assertThrows(NotFoundException.class, () -> filmService.likeFilm(1, 1));
     }
@@ -194,7 +220,7 @@ class FilmControllerTest {
         Film film = new Film();
         film.setId(1);
         film.setLikesCount(1);
-        filmStorage.addFilm(film);
+        filmStorage.add(film);
 
         User user = new User();
         user.setId(1);
@@ -202,7 +228,7 @@ class FilmControllerTest {
 
         filmService.unlikeFilm(1, 1);
 
-        Film unlikedFilm = filmStorage.getFilmById(1);
+        Film unlikedFilm = filmStorage.getById(1);
         Assertions.assertEquals(0, unlikedFilm.getLikesCount());
     }
 
@@ -220,7 +246,7 @@ class FilmControllerTest {
         Film film = new Film();
         film.setId(1);
         film.setLikesCount(1);
-        filmStorage.addFilm(film);
+        filmStorage.add(film);
 
         Assertions.assertThrows(NotFoundException.class, () -> filmService.unlikeFilm(1, 1));
     }
@@ -230,17 +256,17 @@ class FilmControllerTest {
         Film film1 = new Film();
         film1.setId(1);
         film1.setLikesCount(5);
-        filmStorage.addFilm(film1);
+        filmStorage.add(film1);
 
         Film film2 = new Film();
         film2.setId(2);
         film2.setLikesCount(3);
-        filmStorage.addFilm(film2);
+        filmStorage.add(film2);
 
         Film film3 = new Film();
         film3.setId(3);
         film3.setLikesCount(7);
-        filmStorage.addFilm(film3);
+        filmStorage.add(film3);
 
         List<Film> popularFilms = filmService.getPopularFilms(2);
 

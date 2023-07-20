@@ -1,39 +1,60 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.storage.Storage;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+
+@Slf4j
 @Service
 public class InMemoryUserService implements UserService {
-    private UserStorage userStorage;
+    private Storage<User> userStorage;
 
-    public InMemoryUserService(UserStorage userStorage) {
+    public InMemoryUserService(Storage<User> userStorage) {
         this.userStorage = userStorage;
     }
 
     public User addUser(User user) {
-        validateUser(user);
-        return userStorage.addUser(user);
+        try {
+            validateUser(user);
+            User addedUser = userStorage.add(user);
+            log.info("Пользователь создан: {}", addedUser);
+            return addedUser;
+        } catch (ValidationException e) {
+            log.error("Ошибка добавления пользователя: {}", e.getMessage());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
     }
 
     public List<User> getAllUsers() {
-        return userStorage.getAllUsers();
+        log.info("Получение всех пользователей");
+        return userStorage.getAll();
     }
 
     public User updateUser(User updatedUser) {
-        validateUser(updatedUser);
-        return userStorage.updateUser(updatedUser);
+        try {
+            validateUser(updatedUser);
+            User updated = userStorage.update(updatedUser);
+            log.info("Пользователь обновлен: {}", updated);
+            return updated;
+        } catch (ValidationException e) {
+            log.error("Ошибка обновления пользователя: {}", e.getMessage());
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        }
     }
 
     public User getUserById(Integer userId) {
-        return userStorage.getUserById(userId);
+        log.info("Получение пользователя по ID: {}", userId);
+        return userStorage.getById(userId);
     }
 
     public void addFriend(Integer userId, Integer friendId) {
@@ -51,11 +72,12 @@ public class InMemoryUserService implements UserService {
             throw new ValidationException("Пользователи уже являются друзьями");
         }
 
+        log.info("Добавление пользователя с ID {} в друзья пользователю с ID {}", friendId, userId);
         user.getFriends().add(friendId);
         friend.getFriends().add(userId);
 
-        userStorage.updateUser(user);
-        userStorage.updateUser(friend);
+        userStorage.update(user);
+        userStorage.update(friend);
     }
 
     public void removeFriend(Integer userId, Integer friendId) {
@@ -66,11 +88,12 @@ public class InMemoryUserService implements UserService {
             throw new ValidationException("Пользователи не являются друзьями");
         }
 
+        log.info("Удаление пользователя с ID {} из друзей пользователя с ID {}", friendId, userId);
         user.getFriends().remove(friendId);
         friend.getFriends().remove(userId);
 
-        userStorage.updateUser(user);
-        userStorage.updateUser(friend);
+        userStorage.update(user);
+        userStorage.update(friend);
     }
 
     public List<User> getFriendsList(Integer userId) {
@@ -81,7 +104,7 @@ public class InMemoryUserService implements UserService {
             User friend = getUserById(friendId);
             friends.add(friend);
         }
-
+        log.info("Получение списка друзей для пользователя с ID {}", userId);
         return friends;
     }
 
@@ -102,8 +125,13 @@ public class InMemoryUserService implements UserService {
                 commonFriendList.add(friend);
             }
         }
-
+        log.info("Получение списка общих друзей для пользователей с ID {} и {}", userId, otherUserId);
         return commonFriendList;
+    }
+
+    public User remove(Integer userId) {
+        log.info("Удаление пользователя с ID {} ", userId);
+        return userStorage.remove(userId);
     }
 
     private void validateUser(User user) {
