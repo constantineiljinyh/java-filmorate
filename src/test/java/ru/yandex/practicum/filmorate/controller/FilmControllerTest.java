@@ -3,24 +3,40 @@ package ru.yandex.practicum.filmorate.controller;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.InMemoryFilmService;
+import ru.yandex.practicum.filmorate.service.InMemoryUserService;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
+import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.storage.Storage;
 
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 
 class FilmControllerTest {
-
     private FilmController filmController;
+
+    private FilmService filmService;
+
+    private Storage<Film> filmStorage;
+
+    private UserService userService;
+
+    private Storage<User> userStorage;
 
     @BeforeEach
     public void setUP() {
-        MockitoAnnotations.openMocks(this);
-        FilmService filmService = new FilmService();
+        userStorage = new InMemoryUserStorage();
+        userService = new InMemoryUserService(userStorage);
+        filmStorage = new InMemoryFilmStorage();
+        filmService = new InMemoryFilmService(filmStorage, userService);
         filmController = new FilmController(filmService);
     }
 
@@ -90,6 +106,33 @@ class FilmControllerTest {
     }
 
     @Test
+    void removeFilmValidFilmId() {
+        Film filmToRemove = new Film();
+        filmToRemove.setName("Film to Remove");
+        filmToRemove.setDescription("Film to Remove Description");
+        filmToRemove.setReleaseDate(LocalDate.of(2022, 1, 1));
+        filmToRemove.setDuration(120);
+
+        Film addedFilm = filmController.addFilm(filmToRemove);
+        Integer filmId = addedFilm.getId();
+
+        Film removedFilm = filmController.removeFilm(filmId);
+
+        Assertions.assertEquals(addedFilm, removedFilm);
+    }
+
+    @Test
+    void removeFilmInvalidFilmId() {
+        Integer nonExistentFilmId = 1000;
+
+        ResponseStatusException exception = Assertions.assertThrows(ResponseStatusException.class, () ->
+                filmController.removeFilm(nonExistentFilmId));
+
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, exception.getStatus());
+        Assertions.assertEquals("Фильм с ID " + nonExistentFilmId + " не найден", exception.getReason());
+    }
+
+    @Test
     void updateFilmNonExistingFilm() {
         Film nonExistingFilm = new Film();
         nonExistingFilm.setId(100);
@@ -98,11 +141,10 @@ class FilmControllerTest {
         nonExistingFilm.setReleaseDate(LocalDate.of(2022, 1, 1));
         nonExistingFilm.setDuration(120);
 
-        ResponseStatusException exception = Assertions.assertThrows(ResponseStatusException.class, () ->
+        NotFoundException exception = Assertions.assertThrows(NotFoundException.class, () ->
                 filmController.updateFilm(nonExistingFilm));
 
-        Assertions.assertEquals(HttpStatus.NOT_FOUND, exception.getStatus());
-        Assertions.assertEquals("Такого фильма нет", exception.getReason());
+        Assertions.assertEquals("Такого фильма нет", exception.getMessage());
     }
 
     @Test
@@ -135,5 +177,101 @@ class FilmControllerTest {
         List<Film> films = filmController.getAllFilms();
 
         Assertions.assertTrue(films.isEmpty());
+    }
+
+    @Test
+    void successfullyLikesFilm() {
+        Film film = new Film();
+        film.setId(1);
+        film.setLikesCount(0);
+        filmStorage.add(film);
+
+        User user = new User();
+        user.setId(1);
+        userService.addUser(user);
+
+        filmService.likeFilm(1, 1);
+
+        Film likedFilm = filmStorage.getById(1);
+        Assertions.assertEquals(1, likedFilm.getLikesCount());
+    }
+
+    @Test
+    void likeFilmInvalidFilmId() {
+        User user = new User();
+        user.setId(1);
+        userService.addUser(user);
+
+        Assertions.assertThrows(NotFoundException.class, () -> filmService.likeFilm(1, 1));
+    }
+
+    @Test
+    void likeFilmInvalidUserId() {
+        Film film = new Film();
+        film.setId(1);
+        film.setLikesCount(0);
+        filmStorage.add(film);
+
+        Assertions.assertThrows(NotFoundException.class, () -> filmService.likeFilm(1, 1));
+    }
+
+    @Test
+    void successFullyUnlikesFilm() {
+        Film film = new Film();
+        film.setId(1);
+        film.setLikesCount(1);
+        filmStorage.add(film);
+
+        User user = new User();
+        user.setId(1);
+        userService.addUser(user);
+
+        filmService.unlikeFilm(1, 1);
+
+        Film unlikedFilm = filmStorage.getById(1);
+        Assertions.assertEquals(0, unlikedFilm.getLikesCount());
+    }
+
+    @Test
+    void unlikeFilmInvalidFilmId() {
+        User user = new User();
+        user.setId(1);
+        userService.addUser(user);
+
+        Assertions.assertThrows(NotFoundException.class, () -> filmService.unlikeFilm(1, 1));
+    }
+
+    @Test
+    void unlikeFilmInvalidUserId() {
+        Film film = new Film();
+        film.setId(1);
+        film.setLikesCount(1);
+        filmStorage.add(film);
+
+        Assertions.assertThrows(NotFoundException.class, () -> filmService.unlikeFilm(1, 1));
+    }
+
+    @Test
+    void getPopularFilmsPopularFilms() {
+        Film film1 = new Film();
+        film1.setId(1);
+        film1.setLikesCount(5);
+        filmStorage.add(film1);
+
+        Film film2 = new Film();
+        film2.setId(2);
+        film2.setLikesCount(3);
+        filmStorage.add(film2);
+
+        Film film3 = new Film();
+        film3.setId(3);
+        film3.setLikesCount(7);
+        filmStorage.add(film3);
+
+        List<Film> popularFilms = filmService.getPopularFilms(2);
+
+        Assertions.assertEquals(2, popularFilms.size());
+        Assertions.assertEquals(film3, popularFilms.get(0));
+        Assertions.assertEquals(film1, popularFilms.get(1));
     }
 }
