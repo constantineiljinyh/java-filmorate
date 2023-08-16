@@ -3,24 +3,28 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.Storage;
+import ru.yandex.practicum.filmorate.storage.friend.FriendsStorage;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 
+@Transactional
 @Slf4j
 @Service
-public class InMemoryUserService implements UserService {
-    private Storage<User> userStorage;
+public class UserServiceImpl implements UserService {
+    private final Storage<User> userStorage;
+    private final FriendsStorage friendsStorage;
 
-    public InMemoryUserService(Storage<User> userStorage) {
+    public UserServiceImpl(Storage<User> userStorage, FriendsStorage friendsStorage) {
         this.userStorage = userStorage;
+        this.friendsStorage = friendsStorage;
     }
 
     public User addUser(User user) {
@@ -41,15 +45,15 @@ public class InMemoryUserService implements UserService {
     }
 
     public User updateUser(User updatedUser) {
-        try {
-            validateUser(updatedUser);
-            User updated = userStorage.update(updatedUser);
-            log.info("Пользователь обновлен: {}", updated);
-            return updated;
-        } catch (ValidationException e) {
-            log.error("Ошибка обновления пользователя: {}", e.getMessage());
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        if (!userStorage.isExist(updatedUser.getId())) {
+            log.debug("Не корректный пользователь с email {}.", updatedUser.getLogin());
+            throw new NotFoundException(HttpStatus.NOT_FOUND, "Пользователь не найден.");
         }
+
+        validateUser(updatedUser);
+        User updated = userStorage.update(updatedUser);
+        log.info("Пользователь обновлен: {}", updated);
+        return updated;
     }
 
     public User getUserById(Integer userId) {
@@ -74,64 +78,48 @@ public class InMemoryUserService implements UserService {
 
         log.info("Добавление пользователя с ID {} в друзья пользователю с ID {}", friendId, userId);
         user.getFriends().add(friendId);
-        friend.getFriends().add(userId);
 
         userStorage.update(user);
-        userStorage.update(friend);
+
+        friendsStorage.addFriend(userId, friendId);
     }
 
     public void removeFriend(Integer userId, Integer friendId) {
         User user = getUserById(userId);
         User friend = getUserById(friendId);
 
-        if (!user.getFriends().contains(friendId) || !friend.getFriends().contains(userId)) {
+        if (!user.getFriends().contains(friendId)) {
             throw new ValidationException("Пользователи не являются друзьями");
         }
 
         log.info("Удаление пользователя с ID {} из друзей пользователя с ID {}", friendId, userId);
         user.getFriends().remove(friendId);
-        friend.getFriends().remove(userId);
 
         userStorage.update(user);
-        userStorage.update(friend);
+
+        friendsStorage.removeFriend(userId, friendId);
     }
 
     public List<User> getFriendsList(Integer userId) {
-        User user = getUserById(userId);
-        List<User> friends = new ArrayList<>();
-
-        for (Integer friendId : user.getFriends()) {
-            User friend = getUserById(friendId);
-            friends.add(friend);
-        }
+        userStorage.getById(userId);
         log.info("Получение списка друзей для пользователя с ID {}", userId);
-        return friends;
+        return friendsStorage.getFriendsList(userId);
     }
 
     public List<User> getCommonFriends(Integer userId, Integer otherUserId) {
-        User user = getUserById(userId);
-        User otherUser = getUserById(otherUserId);
-
-        Set<Integer> commonFriends = new HashSet<>();
-        if (user.getFriends() != null && otherUser.getFriends() != null) {
-            commonFriends.addAll(user.getFriends());
-            commonFriends.retainAll(otherUser.getFriends());
-        }
-
-        List<User> commonFriendList = new ArrayList<>();
-        for (Integer friendId : commonFriends) {
-            User friend = getUserById(friendId);
-            if (friend != null) {
-                commonFriendList.add(friend);
-            }
-        }
+        userStorage.getById(userId);
         log.info("Получение списка общих друзей для пользователей с ID {} и {}", userId, otherUserId);
-        return commonFriendList;
+        return friendsStorage.getCommonFriends(userId, otherUserId);
     }
 
     public User remove(Integer userId) {
         log.info("Удаление пользователя с ID {} ", userId);
         return userStorage.remove(userId);
+    }
+
+    @Override
+    public boolean isExist(Integer userId) {
+        return userStorage.isExist(userId);
     }
 
     private void validateUser(User user) {

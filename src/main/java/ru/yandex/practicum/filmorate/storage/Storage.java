@@ -12,4 +12,6 @@ public interface Storage<T> {
     T getById(Integer itemId);
 
     T remove(Integer filmId);
+
+    boolean isExist(int id);
 }

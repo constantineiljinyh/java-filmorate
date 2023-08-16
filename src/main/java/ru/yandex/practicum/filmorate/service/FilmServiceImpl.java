@@ -1,28 +1,37 @@
 package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.Storage;
+import ru.yandex.practicum.filmorate.storage.like.LikeFilmsStorage;
 
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
+@Transactional
 @Slf4j
 @Service
-public class InMemoryFilmService implements FilmService {
+public class FilmServiceImpl implements FilmService {
     private final Storage<Film> filmStorage;
+
     private final UserService userService;
 
-    public InMemoryFilmService(Storage<Film> filmStorage, UserService userService) {
+    private final LikeFilmsStorage likeFilms;
+
+    @Autowired
+    public FilmServiceImpl(Storage<Film> filmStorage, UserService userService, LikeFilmsStorage likeFilms) {
         this.filmStorage = filmStorage;
         this.userService = userService;
+        this.likeFilms = likeFilms;
     }
 
     public Film addFilm(Film film) {
@@ -48,49 +57,49 @@ public class InMemoryFilmService implements FilmService {
     }
 
     public Film updateFilm(Film updatedFilm) {
-        try {
-            validateFilm(updatedFilm);
-            Film updated = filmStorage.update(updatedFilm);
-            log.info("Фильм обновлен: {}", updated);
-            return updated;
-        } catch (ValidationException e) {
-            log.error("Ошибка обновления фильма: {}", e.getMessage());
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        if (!filmStorage.isExist(updatedFilm.getId())) {
+            throw new NotFoundException("Фильм не найден.");
         }
+        validateFilm(updatedFilm);
+        Film updated = filmStorage.update(updatedFilm);
+        log.info("Фильм обновлен: {}", updated);
+        return updated;
+
     }
 
     public void likeFilm(Integer filmId, Integer userId) {
-        User user = userService.getUserById(userId);
-        Film film = filmStorage.getById(filmId);
-        if (user != null && film != null) {
-            film.setLikesCount(film.getLikesCount() + 1);
-            log.info("Добавление лайка к фильму с ID {} от пользователя с ID {}", filmId, userId);
-            filmStorage.update(film);
-        } else {
-            throw new NotFoundException("Пользователь или фильм с не найден");
+        if (!userService.isExist(userId)) {
+            throw new NotFoundException(String.format("Пользователь с id %d не зарегистрирован.", userId));
         }
+        if (!filmStorage.isExist(filmId)) {
+            throw new NotFoundException(String.format("Фильм с id %d не не существует.", filmId));
+        }
+        if (!likeFilms.isExistLike(filmId, userId)) {
+            throw new NotFoundException(String.format("Лайк от пользователя %d уже есть.", userId));
+        }
+        likeFilms.likeForFilm(filmId, userId);
     }
 
     public void unlikeFilm(Integer filmId, Integer userId) {
-        User user = userService.getUserById(userId);
-        Film film = filmStorage.getById(filmId);
-        if (user != null && film != null) {
-            int likesCount = film.getLikesCount();
-            if (likesCount > 0) {
-                film.setLikesCount(likesCount - 1);
-                log.info("Удаление лайка у фильма с ID {} от пользователя с ID {}", filmId, userId);
-                filmStorage.update(film);
-            }
-        } else {
-            throw new NotFoundException("Пользователь или фильм с не найден");
+        if (!userService.isExist(userId)) {
+            throw new NotFoundException(String.format("Пользователь с id %d не зарегистрирован.", userId));
         }
+        if (!filmStorage.isExist(filmId)) {
+            throw new NotFoundException(String.format("Фильм с id %d не не существует.", filmId));
+        }
+        if (likeFilms.isExistLike(filmId, userId)) {
+            throw new NotFoundException(String.format("Лайка от пользователя %d еще нет.", userId));
+        }
+        likeFilms.dislikeForFilm(filmId, userId);
     }
 
     public List<Film> getPopularFilms(int count) {
         List<Film> allFilms = filmStorage.getAll();
-        allFilms.sort(Comparator.comparingInt(Film::getLikesCount).reversed());
-        log.info("Получение популярных фильмов ({} шт.)", count);
-        return allFilms.subList(0, Math.min(count, allFilms.size()));
+        log.debug("Пользователь запросил топ {} фильмов", count);
+        return allFilms.stream()
+                .sorted(Comparator.comparingInt(Film::getRate).reversed())
+                .limit(count)
+                .collect(Collectors.toList());
     }
 
     public Film remove(Integer filmId) {
