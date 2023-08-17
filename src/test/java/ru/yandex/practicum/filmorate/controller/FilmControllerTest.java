@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -39,19 +40,47 @@ class FilmControllerTest {
     @Autowired
     private FilmController filmController;
 
+    private Film film1;
+    private Film film2;
+    private User user1;
+    private User user2;
+
+    @BeforeEach
+    void setUp() {
+        film1 = new Film();
+        film1.setName("Film 1");
+        film1.setDescription("Description 1");
+        film1.setReleaseDate(LocalDate.of(2022, 1, 1));
+        film1.setDuration(120);
+        film1.setMpa(new RatingMPA(1, "G"));
+        film1.setRate(5);
+
+        film2 = new Film();
+        film2.setName("Film 2");
+        film2.setDescription("Description 2");
+        film2.setReleaseDate(LocalDate.of(2022, 2, 1));
+        film2.setDuration(130);
+        film2.setMpa(new RatingMPA(2, "PG"));
+        film2.setRate(4);
+
+        user1 = new User();
+        user1.setName("User 1");
+        user1.setEmail("user1@example.com");
+        user1.setLogin("user1");
+        user1.setBirthday(LocalDate.of(1990, 5, 15));
+
+        user2 = new User();
+        user2.setName("User 2");
+        user2.setEmail("user2@example.com");
+        user2.setLogin("user2");
+        user2.setBirthday(LocalDate.of(1995, 8, 20));
+    }
+
     @Test
     void addFilmValidFilm() {
-        Film validFilm = new Film();
-        validFilm.setName("Film Name");
-        validFilm.setDescription("Film Description");
-        validFilm.setReleaseDate(LocalDate.of(2022, 1, 1));
-        validFilm.setDuration(120);
-        validFilm.setMpa(new RatingMPA(1, "G"));
-        validFilm.setRate(5);
+        Film addedFilm = filmController.addFilm(film1);
 
-        Film addedFilm = filmController.addFilm(validFilm);
-
-        Assertions.assertEquals(validFilm, addedFilm);
+        Assertions.assertEquals(film1, addedFilm);
         Assertions.assertEquals(1, addedFilm.getId());
     }
 
@@ -73,25 +102,8 @@ class FilmControllerTest {
     }
 
     @Test
-    void addFilmNullFilm() {
-        ResponseStatusException exception = Assertions.assertThrows(ResponseStatusException.class, () ->
-                filmController.addFilm(null));
-
-        Assertions.assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
-        Assertions.assertEquals("Ошибка добавления фильма: Передан пустой фильм", exception.getReason());
-    }
-
-    @Test
     void updateFilmValidFilm() {
-        Film filmToAdd = new Film();
-        filmToAdd.setName("Original Name");
-        filmToAdd.setDescription("Original Description");
-        filmToAdd.setReleaseDate(LocalDate.of(2022, 1, 1));
-        filmToAdd.setDuration(120);
-        filmToAdd.setMpa(new RatingMPA(1, "G"));
-        filmToAdd.setRate(5);
-
-        filmController.addFilm(filmToAdd);
+        filmController.addFilm(film1);
 
         Film updatedFilm = new Film();
         updatedFilm.setId(1);
@@ -113,16 +125,8 @@ class FilmControllerTest {
 
     @Test
     void removeFilmValidFilmId() {
-        Film filmToRemove = new Film();
-        filmToRemove.setName("Film to Remove");
-        filmToRemove.setDescription("Film to Remove Description");
-        filmToRemove.setReleaseDate(LocalDate.of(2022, 1, 1));
-        filmToRemove.setLikesCount(0);
-        filmToRemove.setDuration(120);
-        filmToRemove.setMpa(new RatingMPA(1, "G"));
-        filmToRemove.setRate(5);
-
-        Film addedFilm = filmController.addFilm(filmToRemove);
+        film1.setLikesCount(0);
+        Film addedFilm = filmController.addFilm(film1);
         Integer filmId = addedFilm.getId();
 
         Film removedFilm = filmController.removeFilm(filmId);
@@ -157,22 +161,7 @@ class FilmControllerTest {
 
     @Test
     void getALLFilmsReturnsListOfFilms() {
-        Film film1 = new Film();
-        film1.setName("Фильм 1");
-        film1.setDescription("Описание фильма 1");
-        film1.setReleaseDate(LocalDate.of(2022, 1, 1));
-        film1.setDuration(120);
-        film1.setMpa(new RatingMPA(1, "G"));
-        film1.setRate(5);
         filmController.addFilm(film1);
-
-        Film film2 = new Film();
-        film2.setName("Фильм 2");
-        film2.setDescription("Описание фильма 2");
-        film2.setReleaseDate(LocalDate.of(2023, 1, 1));
-        film2.setDuration(150);
-        film2.setMpa(new RatingMPA(2, "PG"));
-        film2.setRate(4);
         filmController.addFilm(film2);
 
         List<Film> expectedFilms = Arrays.asList(film1, film2);
@@ -191,23 +180,8 @@ class FilmControllerTest {
 
     @Test
     void successfullyLikesFilm() {
-        Film filmToAdd = new Film();
-        filmToAdd.setName("Film Name");
-        filmToAdd.setDescription("Film Description");
-        filmToAdd.setReleaseDate(LocalDate.of(2022, 1, 1));
-        filmToAdd.setDuration(120);
-        filmToAdd.setMpa(new RatingMPA(1, "G"));
-        filmToAdd.setRate(5);
-
-        filmController.addFilm(filmToAdd);
-
-        User userToAdd = new User();
-        userToAdd.setName("John Doe");
-        userToAdd.setEmail("john@example.com");
-        userToAdd.setLogin("johndoe");
-        userToAdd.setBirthday(LocalDate.of(1990, 5, 15));
-
-        userService.addUser(userToAdd);
+        filmController.addFilm(film1);
+        userService.addUser(user1);
 
         filmService.likeFilm(1, 1);
 
@@ -217,53 +191,23 @@ class FilmControllerTest {
 
     @Test
     void likeFilmInvalidFilmId() {
-        Film filmToAdd = new Film();
-        filmToAdd.setName("Film Name");
-        filmToAdd.setDescription("Film Description");
-        filmToAdd.setReleaseDate(LocalDate.of(2022, 1, 1));
-        filmToAdd.setDuration(120);
-        filmToAdd.setMpa(new RatingMPA(1, "G"));
-        filmToAdd.setRate(5);
-
-        filmController.addFilm(filmToAdd);
+        filmController.addFilm(film1);
 
         Assertions.assertThrows(NotFoundException.class, () -> filmService.likeFilm(1, 1));
     }
 
     @Test
     void likeFilmInvalidUserId() {
-        Film filmToAdd = new Film();
-        filmToAdd.setName("Film Name");
-        filmToAdd.setDescription("Film Description");
-        filmToAdd.setReleaseDate(LocalDate.of(2022, 1, 1));
-        filmToAdd.setDuration(120);
-        filmToAdd.setMpa(new RatingMPA(1, "G"));
-        filmToAdd.setRate(5);
-
-        filmController.addFilm(filmToAdd);
+        filmController.addFilm(film1);
 
         Assertions.assertThrows(NotFoundException.class, () -> filmService.likeFilm(1, 1));
     }
 
     @Test
     void successFullyUnlikesFilm() {
-        Film filmToAdd = new Film();
-        filmToAdd.setName("Film Name");
-        filmToAdd.setDescription("Film Description");
-        filmToAdd.setReleaseDate(LocalDate.of(2022, 1, 1));
-        filmToAdd.setDuration(120);
-        filmToAdd.setMpa(new RatingMPA(1, "G"));
-        filmToAdd.setRate(5);
+        filmController.addFilm(film1);
 
-        filmController.addFilm(filmToAdd);
-
-        User userToAdd = new User();
-        userToAdd.setName("John Doe");
-        userToAdd.setEmail("john@example.com");
-        userToAdd.setLogin("johndoe");
-        userToAdd.setBirthday(LocalDate.of(1990, 5, 15));
-
-        userService.addUser(userToAdd);
+        userService.addUser(user1);
         filmService.likeFilm(1, 1);
 
         filmService.unlikeFilm(1, 1);
@@ -280,44 +224,21 @@ class FilmControllerTest {
         userToAdd.setLogin("johndoe");
         userToAdd.setBirthday(LocalDate.of(1990, 5, 15));
 
-        userService.addUser(userToAdd);
+        userService.addUser(user1);
 
         Assertions.assertThrows(NotFoundException.class, () -> filmService.unlikeFilm(1, 1));
     }
 
     @Test
     void unlikeFilmInvalidUserId() {
-        Film filmToAdd = new Film();
-        filmToAdd.setName("Film Name");
-        filmToAdd.setDescription("Film Description");
-        filmToAdd.setReleaseDate(LocalDate.of(2022, 1, 1));
-        filmToAdd.setDuration(120);
-        filmToAdd.setMpa(new RatingMPA(1, "G"));
-        filmToAdd.setRate(5);
-
-        filmController.addFilm(filmToAdd);
+        filmController.addFilm(film1);
 
         Assertions.assertThrows(NotFoundException.class, () -> filmService.unlikeFilm(1, 1));
     }
 
     @Test
     void getPopularFilmsPopularFilms() {
-        Film film1 = new Film();
-        film1.setName("Film 1");
-        film1.setDescription("Description 1");
-        film1.setReleaseDate(LocalDate.of(2022, 1, 1));
-        film1.setDuration(120);
-        film1.setMpa(new RatingMPA(1, "G"));
-        film1.setRate(5);
         filmController.addFilm(film1);
-
-        Film film2 = new Film();
-        film2.setName("Film 2");
-        film2.setDescription("Description 2");
-        film2.setReleaseDate(LocalDate.of(2022, 2, 1));
-        film2.setDuration(130);
-        film2.setMpa(new RatingMPA(2, "PG"));
-        film2.setRate(4);
         filmController.addFilm(film2);
 
         Film film3 = new Film();

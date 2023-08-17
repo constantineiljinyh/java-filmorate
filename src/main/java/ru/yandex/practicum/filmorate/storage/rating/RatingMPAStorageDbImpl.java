@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.storage.rating;
 
+import lombok.AllArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.RatingMPA;
@@ -8,13 +9,10 @@ import ru.yandex.practicum.filmorate.storage.ClassificationStorage;
 import java.util.List;
 
 @Component
+@AllArgsConstructor
 public class RatingMPAStorageDbImpl implements ClassificationStorage<RatingMPA> {
 
     private final JdbcTemplate jdbcTemplate;
-
-    public RatingMPAStorageDbImpl(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
 
     public List<RatingMPA> getAll() {
         return jdbcTemplate.query("SELECT * FROM ratingMPA", (rs, rowNum) ->

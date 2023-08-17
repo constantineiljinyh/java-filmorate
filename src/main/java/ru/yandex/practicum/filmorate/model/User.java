@@ -11,7 +11,6 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.PastOrPresent;
 import javax.validation.constraints.Pattern;
 import java.time.LocalDate;
-import java.util.Set;
 
 @Data
 @AllArgsConstructor
@@ -21,6 +20,7 @@ public class User {
     private Integer id;
 
     private String name;
+
     @NotBlank(message = "Электронная почта не может быть пустой")
     @Email(message = "Неправильный формат электронной почты")
     private String email;
@@ -32,6 +32,4 @@ public class User {
     @NotNull
     @PastOrPresent(message = "Дата рождения не может быть в будущем")
     private LocalDate birthday;
-
-    private Set<Integer> friends;
 }

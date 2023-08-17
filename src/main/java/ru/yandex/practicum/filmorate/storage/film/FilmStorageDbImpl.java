@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.storage.film;
 
+import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Primary;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
@@ -20,12 +21,14 @@ import java.sql.PreparedStatement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import static ru.yandex.practicum.filmorate.storage.ModelMapper.createInsertFilmStatement;
 import static ru.yandex.practicum.filmorate.storage.ModelMapper.mapperGetFilms;
 
 @Component
 @Primary
+@AllArgsConstructor
 public class FilmStorageDbImpl implements Storage<Film> {
 
     private final JdbcTemplate jdbcTemplate;
@@ -33,13 +36,6 @@ public class FilmStorageDbImpl implements Storage<Film> {
     private final RatingMPAStorageDbImpl ratingMpaDbStorage;
 
     private final LikeFilmsStorage likeFilms;
-
-    public FilmStorageDbImpl(JdbcTemplate jdbcTemplate, GenreFilmStorageDbImpl genreDbStorage, RatingMPAStorageDbImpl ratingMpaDbStorage, LikeFilmsStorage likeFilms) {
-        this.jdbcTemplate = jdbcTemplate;
-        this.genreDbStorage = genreDbStorage;
-        this.ratingMpaDbStorage = ratingMpaDbStorage;
-        this.likeFilms = likeFilms;
-    }
 
     @Override
     public Film add(Film film) {
@@ -69,7 +65,7 @@ public class FilmStorageDbImpl implements Storage<Film> {
             }
         }
 
-        List<Genre> filmGenres = genreDbStorage.getForFilm(generatedId);
+        Set<Genre> filmGenres = genreDbStorage.getForFilm(generatedId);
         film.setGenres(filmGenres);
 
         return film;
@@ -116,7 +112,7 @@ public class FilmStorageDbImpl implements Storage<Film> {
                 }
             }
 
-            List<Genre> filmGenres = genreDbStorage.getForFilm(updatedFilm.getId());
+            Set<Genre> filmGenres = genreDbStorage.getForFilm(updatedFilm.getId());
             updatedFilm.setGenres(filmGenres);
 
             return updatedFilm;

@@ -13,7 +13,10 @@ import ru.yandex.practicum.filmorate.storage.film.FilmStorageDbImpl;
 
 import java.time.LocalDate;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -58,15 +61,17 @@ class GenreFilmStorageDbImplTest {
                 .duration(120)
                 .mpa(new RatingMPA(1, "G"))
                 .rate(5)
-                .genres(Collections.singletonList(genre))
+                .genres(new HashSet<>(Collections.singletonList(genre)))
                 .build();
 
         Film addedFilm = filmDbStorage.add(filmToAdd);
 
-        List<Genre> genres = genreDbStorage.getForFilm(addedFilm.getId());
-        assertEquals(1, genres.size());
-        assertEquals(genre.getId(), genres.get(0).getId());
-        assertEquals(genre.getName(), genres.get(0).getName());
+        Set<Genre> expectedGenres = new LinkedHashSet<>();
+        expectedGenres.add(genre);
+
+        Set<Genre> actualGenres = genreDbStorage.getForFilm(addedFilm.getId());
+
+        assertEquals(expectedGenres, actualGenres);
     }
 
     @Test

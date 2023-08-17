@@ -13,6 +13,7 @@ import ru.yandex.practicum.filmorate.model.RatingMPA;
 
 import java.time.LocalDate;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -20,7 +21,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
 
 @SpringBootTest
 @AutoConfigureTestDatabase
@@ -148,10 +148,11 @@ class FilmStorageDbImplTest {
                 .duration(120)
                 .mpa(new RatingMPA(1, "G"))
                 .rate(5)
-                .genres(Collections.singletonList(genre))
+                .genres(new HashSet<>(Collections.singletonList(genre)))
                 .build();
 
         Film addedFilm = filmDbStorage.add(filmToAdd);
+        assertNotNull(addedFilm.getId());
 
         Film retrievedFilm = filmDbStorage.getById(addedFilm.getId());
 
@@ -166,7 +167,7 @@ class FilmStorageDbImplTest {
 
         assertNotNull(retrievedFilm.getGenres());
         assertFalse(retrievedFilm.getGenres().isEmpty());
-        assertEquals(genre, retrievedFilm.getGenres().get(0));
+        assertTrue(retrievedFilm.getGenres().contains(genre));
     }
 
     @Test
@@ -231,7 +232,7 @@ class FilmStorageDbImplTest {
                 .duration(120)
                 .mpa(new RatingMPA(1, "G"))
                 .rate(5)
-                .genres(Collections.singletonList(genre))
+                .genres(new HashSet<>(Collections.singletonList(genre)))
                 .build();
 
         Film addedFilm = filmDbStorage.add(filmToAdd);

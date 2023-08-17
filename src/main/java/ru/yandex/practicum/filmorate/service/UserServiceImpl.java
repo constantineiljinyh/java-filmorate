@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -11,21 +12,15 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.Storage;
 import ru.yandex.practicum.filmorate.storage.friend.FriendsStorage;
 
-import java.util.HashSet;
 import java.util.List;
-
 
 @Transactional
 @Slf4j
 @Service
+@AllArgsConstructor
 public class UserServiceImpl implements UserService {
     private final Storage<User> userStorage;
     private final FriendsStorage friendsStorage;
-
-    public UserServiceImpl(Storage<User> userStorage, FriendsStorage friendsStorage) {
-        this.userStorage = userStorage;
-        this.friendsStorage = friendsStorage;
-    }
 
     public User addUser(User user) {
         try {
@@ -62,40 +57,27 @@ public class UserServiceImpl implements UserService {
     }
 
     public void addFriend(Integer userId, Integer friendId) {
-        User user = getUserById(userId);
-        User friend = getUserById(friendId);
+        getUserById(userId);
+        getUserById(friendId);
+        boolean areFriends = friendsStorage.areFriends(userId, friendId);
 
-        if (user.getFriends() == null) {
-            user.setFriends(new HashSet<>());
-        }
-        if (friend.getFriends() == null) {
-            friend.setFriends(new HashSet<>());
-        }
-
-        if (user.getFriends().contains(friendId) || friend.getFriends().contains(userId)) {
+        if (areFriends) {
             throw new ValidationException("Пользователи уже являются друзьями");
         }
 
         log.info("Добавление пользователя с ID {} в друзья пользователю с ID {}", friendId, userId);
-        user.getFriends().add(friendId);
-
-        userStorage.update(user);
 
         friendsStorage.addFriend(userId, friendId);
     }
 
     public void removeFriend(Integer userId, Integer friendId) {
-        User user = getUserById(userId);
-        User friend = getUserById(friendId);
+        boolean areFriends = friendsStorage.areFriends(userId, friendId);
 
-        if (!user.getFriends().contains(friendId)) {
+        if (!areFriends) {
             throw new ValidationException("Пользователи не являются друзьями");
         }
 
         log.info("Удаление пользователя с ID {} из друзей пользователя с ID {}", friendId, userId);
-        user.getFriends().remove(friendId);
-
-        userStorage.update(user);
 
         friendsStorage.removeFriend(userId, friendId);
     }

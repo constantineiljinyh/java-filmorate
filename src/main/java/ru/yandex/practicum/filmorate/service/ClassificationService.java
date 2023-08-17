@@ -7,5 +7,4 @@ public interface ClassificationService<T> {
     List<T> getAll();
 
     T getById(Integer id);
-
 }

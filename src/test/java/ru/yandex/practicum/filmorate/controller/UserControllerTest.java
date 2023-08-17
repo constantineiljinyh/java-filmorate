@@ -2,20 +2,18 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.web.server.ResponseStatusException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
 import java.util.List;
-
 
 @SpringBootTest
 @AutoConfigureTestDatabase
@@ -24,6 +22,25 @@ import java.util.List;
 class UserControllerTest {
     @Autowired
     private UserController userController;
+
+    private User user1;
+
+    private User user2;
+
+    @BeforeEach
+    void setUp() {
+        user1 = new User();
+        user1.setName("User to Remove");
+        user1.setEmail("user@example.com");
+        user1.setLogin("user123");
+        user1.setBirthday(LocalDate.of(1990, 5, 15));
+
+        user2 = new User();
+        user2.setEmail("user2@example.com");
+        user2.setLogin("user456");
+        user2.setName("Name 2");
+        user2.setBirthday(LocalDate.of(1995, 8, 20));
+    }
 
     @Test
     void addUserEmptyName() {
@@ -38,23 +55,8 @@ class UserControllerTest {
     }
 
     @Test
-    void addUserNullUser() {
-        ResponseStatusException exception = Assertions.assertThrows(ResponseStatusException.class, () ->
-                userController.addUser(null));
-
-        Assertions.assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
-        Assertions.assertEquals("Пустой пользователь", exception.getReason());
-    }
-
-    @Test
     void removeUserValidUserId() {
-        User userToRemove = new User();
-        userToRemove.setName("User to Remove");
-        userToRemove.setEmail("user@example.com");
-        userToRemove.setLogin("user123");
-        userToRemove.setBirthday(LocalDate.of(1990, 5, 15));
-
-        User createdUser = userController.addUser(userToRemove);
+        User createdUser = userController.addUser(user1);
         Integer userId = createdUser.getId();
 
         User removedUser = userController.removeUser(userId);
@@ -74,18 +76,7 @@ class UserControllerTest {
 
     @Test
     void getALLUsersReturnsAllUsers() {
-        User user1 = new User();
-        user1.setEmail("user1@example.com");
-        user1.setLogin("user123");
-        user1.setName("Name 1");
-        user1.setBirthday(LocalDate.of(1990, 5, 15));
         userController.addUser(user1);
-
-        User user2 = new User();
-        user2.setEmail("user2@example.com");
-        user2.setLogin("user456");
-        user2.setName("Name 2");
-        user2.setBirthday(LocalDate.of(1995, 8, 20));
         userController.addUser(user2);
 
         List<User> allUsers = userController.getAllUsers();
@@ -95,12 +86,7 @@ class UserControllerTest {
 
     @Test
     void updateUserExistingUser() {
-        User existingUser = new User();
-        existingUser.setEmail("user@example.com");
-        existingUser.setLogin("user123");
-        existingUser.setName("Name");
-        existingUser.setBirthday(LocalDate.of(1990, 5, 15));
-        User createdUser = userController.addUser(existingUser);
+        User createdUser = userController.addUser(user1);
 
         User updatedUser = new User();
         updatedUser.setId(createdUser.getId());
@@ -123,18 +109,7 @@ class UserControllerTest {
 
     @Test
     void addFriendValidUsers() {
-        User user1 = new User();
-        user1.setEmail("user1@example.com");
-        user1.setLogin("user123");
-        user1.setName("Name 1");
-        user1.setBirthday(LocalDate.of(1990, 5, 15));
         userController.addUser(user1);
-
-        User user2 = new User();
-        user2.setEmail("user2@example.com");
-        user2.setLogin("user456");
-        user2.setName("Name 2");
-        user2.setBirthday(LocalDate.of(1995, 8, 20));
         userController.addUser(user2);
 
         userController.addFriend(1, 2);
@@ -145,18 +120,7 @@ class UserControllerTest {
 
     @Test
     void addFriendAlreadyFriends() {
-        User user1 = new User();
-        user1.setEmail("user1@example.com");
-        user1.setLogin("user123");
-        user1.setName("Name 1");
-        user1.setBirthday(LocalDate.of(1990, 5, 15));
         userController.addUser(user1);
-
-        User user2 = new User();
-        user2.setEmail("user2@example.com");
-        user2.setLogin("user456");
-        user2.setName("Name 2");
-        user2.setBirthday(LocalDate.of(1995, 8, 20));
         userController.addUser(user2);
 
         userController.addFriend(1, 2);
@@ -169,18 +133,7 @@ class UserControllerTest {
 
     @Test
     void removeFriendValidUsers() {
-        User user1 = new User();
-        user1.setEmail("user1@example.com");
-        user1.setLogin("user123");
-        user1.setName("Name 1");
-        user1.setBirthday(LocalDate.of(1990, 5, 15));
         userController.addUser(user1);
-
-        User user2 = new User();
-        user2.setEmail("user2@example.com");
-        user2.setLogin("user456");
-        user2.setName("Name 2");
-        user2.setBirthday(LocalDate.of(1995, 8, 20));
         userController.addUser(user2);
 
         userController.addFriend(1, 2);
@@ -193,18 +146,7 @@ class UserControllerTest {
 
     @Test
     void removeFriendNotFriends() {
-        User user1 = new User();
-        user1.setEmail("user1@example.com");
-        user1.setLogin("user123");
-        user1.setName("Name 1");
-        user1.setBirthday(LocalDate.of(1990, 5, 15));
         userController.addUser(user1);
-
-        User user2 = new User();
-        user2.setEmail("user2@example.com");
-        user2.setLogin("user456");
-        user2.setName("Name 2");
-        user2.setBirthday(LocalDate.of(1995, 8, 20));
         userController.addUser(user2);
 
         ValidationException exception = Assertions.assertThrows(ValidationException.class, () ->
@@ -215,18 +157,7 @@ class UserControllerTest {
 
     @Test
     void getFriendsListValidUser() {
-        User user1 = new User();
-        user1.setEmail("user1@example.com");
-        user1.setLogin("user123");
-        user1.setName("Name 1");
-        user1.setBirthday(LocalDate.of(1990, 5, 15));
         userController.addUser(user1);
-
-        User user2 = new User();
-        user2.setEmail("user2@example.com");
-        user2.setLogin("user456");
-        user2.setName("Name 2");
-        user2.setBirthday(LocalDate.of(1995, 8, 20));
         userController.addUser(user2);
 
         userController.addFriend(1, 2);
@@ -245,18 +176,7 @@ class UserControllerTest {
 
     @Test
     void getCommonFriendsValidUsers() {
-        User user1 = new User();
-        user1.setEmail("user1@example.com");
-        user1.setLogin("user123");
-        user1.setName("Name 1");
-        user1.setBirthday(LocalDate.of(1990, 5, 15));
         userController.addUser(user1);
-
-        User user2 = new User();
-        user2.setEmail("user2@example.com");
-        user2.setLogin("user456");
-        user2.setName("Name 2");
-        user2.setBirthday(LocalDate.of(1995, 8, 20));
         userController.addUser(user2);
 
         User user3 = new User();
@@ -276,18 +196,7 @@ class UserControllerTest {
 
     @Test
     void getCommonFriendsNoCommonFriends() {
-        User user1 = new User();
-        user1.setEmail("user1@example.com");
-        user1.setLogin("user123");
-        user1.setName("Name 1");
-        user1.setBirthday(LocalDate.of(1990, 5, 15));
         userController.addUser(user1);
-
-        User user2 = new User();
-        user2.setEmail("user2@example.com");
-        user2.setLogin("user456");
-        user2.setName("Name 2");
-        user2.setBirthday(LocalDate.of(1995, 8, 20));
         userController.addUser(user2);
 
         User user3 = new User();

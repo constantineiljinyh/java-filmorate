@@ -13,6 +13,7 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -32,7 +33,7 @@ public class ModelMapper {
                     film.setReleaseDate(rs.getDate("release_date").toLocalDate());
                     film.setDuration(rs.getInt("duration"));
                     film.setRate(rs.getInt("rating"));
-                    film.setGenres(new ArrayList<>());
+                    film.setGenres(new LinkedHashSet<>());
                     filmMap.put(filmId, film);
 
                     RatingMPA ratingMpa = new RatingMPA();

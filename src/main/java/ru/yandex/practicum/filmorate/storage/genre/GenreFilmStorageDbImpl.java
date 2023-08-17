@@ -1,20 +1,20 @@
 package ru.yandex.practicum.filmorate.storage.genre;
 
+import lombok.AllArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.ClassificationStorage;
 
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 @Component
+@AllArgsConstructor
 public class GenreFilmStorageDbImpl implements ClassificationStorage<Genre> {
 
     private final JdbcTemplate jdbcTemplate;
-
-    public GenreFilmStorageDbImpl(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
 
     @Override
     public List<Genre> getAll() {
@@ -30,12 +30,12 @@ public class GenreFilmStorageDbImpl implements ClassificationStorage<Genre> {
                 new Genre(rs.getInt("id_genre"), rs.getString("name_genre")), genreId);
     }
 
-    public List<Genre> getForFilm(Integer filmId) {
+    public Set<Genre> getForFilm(Integer filmId) {
         String selectSql = "SELECT g.id_genre, g.name_genre FROM genre g " +
                 "JOIN genre_film gf ON g.id_genre = gf.id_genre " +
                 "WHERE gf.id_film = ?";
-        return jdbcTemplate.query(selectSql, (rs, rowNum) ->
-                new Genre(rs.getInt("id_genre"), rs.getString("name_genre")), filmId);
+        return new LinkedHashSet<>(jdbcTemplate.query(selectSql, (rs, rowNum) ->
+                new Genre(rs.getInt("id_genre"), rs.getString("name_genre")), filmId));
     }
 
     @Override
