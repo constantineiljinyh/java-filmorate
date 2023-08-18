@@ -13,7 +13,6 @@ import ru.yandex.practicum.filmorate.repository.film.FilmRepository;
 
 import java.time.LocalDate;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -27,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @AutoConfigureTestDatabase
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
-class GenreFilmStorageDbImplTest {
+class GenreFilmRepositoryTest {
     @Autowired
     private FilmRepository filmDbStorage;
 

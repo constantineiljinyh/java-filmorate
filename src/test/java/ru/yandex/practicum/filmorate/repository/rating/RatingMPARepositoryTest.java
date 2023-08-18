@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @AutoConfigureTestDatabase
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
-class RatingMPAStorageDbImplTest {
+class RatingMPARepositoryTest {
 
     @Autowired
     private RatingMPARepository ratingMPAStorageDb;
