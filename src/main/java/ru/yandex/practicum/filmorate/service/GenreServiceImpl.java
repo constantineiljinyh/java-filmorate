@@ -15,11 +15,13 @@ import java.util.List;
 public class GenreServiceImpl implements ClassificationService<Genre> {
     private final GenreFilmRepository genreStorage;
 
+    @Override
     public List<Genre> getAll() {
         log.debug("Обрабатываем запрос на просмотр всех жанров фильмов.");
         return genreStorage.getAll();
     }
 
+    @Override
     public Genre getById(Integer id) {
         log.debug("Обрабатываем запрос на просмотр фильма с id {}.", id);
         if (genreStorage.isExist(id)) {

@@ -21,6 +21,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userStorage;
     private final FriendsRepository friendsStorage;
 
+    @Override
     @Transactional
     public User addUser(User user) {
         try {
@@ -34,11 +35,13 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    @Override
     public List<User> getAllUsers() {
         log.info("Получение всех пользователей");
         return userStorage.getAll();
     }
 
+    @Override
     @Transactional
     public User updateUser(User updatedUser) {
         if (!userStorage.isExist(updatedUser.getId())) {
@@ -52,11 +55,13 @@ public class UserServiceImpl implements UserService {
         return updated;
     }
 
+    @Override
     public User getUserById(Integer userId) {
         log.info("Получение пользователя по ID: {}", userId);
         return userStorage.getById(userId);
     }
 
+    @Override
     @Transactional
     public void addFriend(Integer userId, Integer friendId) {
         getUserById(userId);
@@ -73,6 +78,7 @@ public class UserServiceImpl implements UserService {
         friendsStorage.addFriend(userId, friendId);
     }
 
+    @Override
     @Transactional
     public void removeFriend(Integer userId, Integer friendId) {
         boolean areFriends = friendsStorage.areFriends(userId, friendId);
@@ -87,18 +93,21 @@ public class UserServiceImpl implements UserService {
         friendsStorage.removeFriend(userId, friendId);
     }
 
+    @Override
     public List<User> getFriendsList(Integer userId) {
         userStorage.getById(userId);
         log.info("Получение списка друзей для пользователя с ID {}", userId);
         return friendsStorage.getFriendsList(userId);
     }
 
+    @Override
     public List<User> getCommonFriends(Integer userId, Integer otherUserId) {
         userStorage.getById(userId);
         log.info("Получение списка общих друзей для пользователей с ID {} и {}", userId, otherUserId);
         return friendsStorage.getCommonFriends(userId, otherUserId);
     }
 
+    @Override
     @Transactional
     public User remove(Integer userId) {
         if (userStorage.getById(userId) == null) {

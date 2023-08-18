@@ -27,6 +27,7 @@ public class FilmServiceImpl implements FilmService {
 
     private final LikeFilmsRepository likeFilms;
 
+    @Override
     @Transactional
     public Film addFilm(Film film) {
         try {
@@ -40,16 +41,19 @@ public class FilmServiceImpl implements FilmService {
         }
     }
 
+    @Override
     public List<Film> getAllFilms() {
         log.info("Получение всех фильмов");
         return filmStorage.getAll();
     }
 
+    @Override
     public Film getFilmById(Integer filmId) {
         log.info("Получение пользователя по ID: {}", filmId);
         return filmStorage.getById(filmId);
     }
 
+    @Override
     @Transactional
     public Film updateFilm(Film updatedFilm) {
         if (!filmStorage.isExist(updatedFilm.getId())) {
@@ -62,6 +66,7 @@ public class FilmServiceImpl implements FilmService {
         return updated;
     }
 
+    @Override
     @Transactional
     public void likeFilm(Integer filmId, Integer userId) {
         if (!userService.isExist(userId)) {
@@ -79,6 +84,7 @@ public class FilmServiceImpl implements FilmService {
         likeFilms.likeForFilm(filmId, userId);
     }
 
+    @Override
     @Transactional
     public void unlikeFilm(Integer filmId, Integer userId) {
         if (!userService.isExist(userId)) {
@@ -96,6 +102,7 @@ public class FilmServiceImpl implements FilmService {
         likeFilms.dislikeForFilm(filmId, userId);
     }
 
+    @Override
     public List<Film> getPopularFilms(int count) {
         List<Film> allFilms = filmStorage.getAll();
         log.debug("Пользователь запросил топ {} фильмов", count);
@@ -105,6 +112,7 @@ public class FilmServiceImpl implements FilmService {
                 .collect(Collectors.toList());
     }
 
+    @Override
     @Transactional
     public Film remove(Integer filmId) {
         if (filmStorage.getById(filmId) == null) {
