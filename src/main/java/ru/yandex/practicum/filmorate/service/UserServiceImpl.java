@@ -9,19 +9,19 @@ import org.springframework.web.server.ResponseStatusException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.Storage;
-import ru.yandex.practicum.filmorate.storage.friend.FriendsStorage;
+import ru.yandex.practicum.filmorate.repository.friend.FriendsRepository;
+import ru.yandex.practicum.filmorate.repository.user.UserRepository;
 
 import java.util.List;
 
-@Transactional
 @Slf4j
 @Service
 @AllArgsConstructor
 public class UserServiceImpl implements UserService {
-    private final Storage<User> userStorage;
-    private final FriendsStorage friendsStorage;
+    private final UserRepository userStorage;
+    private final FriendsRepository friendsStorage;
 
+    @Transactional
     public User addUser(User user) {
         try {
             validateUser(user);
@@ -39,9 +39,10 @@ public class UserServiceImpl implements UserService {
         return userStorage.getAll();
     }
 
+    @Transactional
     public User updateUser(User updatedUser) {
         if (!userStorage.isExist(updatedUser.getId())) {
-            log.debug("Не корректный пользователь с email {}.", updatedUser.getLogin());
+            log.debug("Пользователь не существует {}.", updatedUser.getId());
             throw new NotFoundException(HttpStatus.NOT_FOUND, "Пользователь не найден.");
         }
 
@@ -56,12 +57,14 @@ public class UserServiceImpl implements UserService {
         return userStorage.getById(userId);
     }
 
+    @Transactional
     public void addFriend(Integer userId, Integer friendId) {
         getUserById(userId);
         getUserById(friendId);
         boolean areFriends = friendsStorage.areFriends(userId, friendId);
 
         if (areFriends) {
+            log.debug("Попытка повторного добавления пользователя с ID {} в друзья пользователю с ID {}", friendId, userId);
             throw new ValidationException("Пользователи уже являются друзьями");
         }
 
@@ -70,10 +73,12 @@ public class UserServiceImpl implements UserService {
         friendsStorage.addFriend(userId, friendId);
     }
 
+    @Transactional
     public void removeFriend(Integer userId, Integer friendId) {
         boolean areFriends = friendsStorage.areFriends(userId, friendId);
 
         if (!areFriends) {
+            log.debug("Пользователи не друзья. Попытка удаления пользователя с ID {} из друзей с ID {}", friendId, userId);
             throw new ValidationException("Пользователи не являются друзьями");
         }
 
@@ -94,7 +99,12 @@ public class UserServiceImpl implements UserService {
         return friendsStorage.getCommonFriends(userId, otherUserId);
     }
 
+    @Transactional
     public User remove(Integer userId) {
+        if (userStorage.getById(userId) == null) {
+            log.debug("Пользователь равен null id {}", userId);
+            throw new NotFoundException("Пользователь равен null");
+        }
         log.info("Удаление пользователя с ID {} ", userId);
         return userStorage.remove(userId);
     }
@@ -106,8 +116,10 @@ public class UserServiceImpl implements UserService {
 
     private void validateUser(User user) {
         if (user == null) {
+            log.debug("Пользователь равен null.");
             throw new ValidationException("Пустой пользователь");
         }
+        log.info("Поступил пользователь без имени.");
         if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
         }

@@ -9,25 +9,25 @@ import org.springframework.web.server.ResponseStatusException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.storage.Storage;
-import ru.yandex.practicum.filmorate.storage.like.LikeFilmsStorage;
+import ru.yandex.practicum.filmorate.repository.film.FilmRepository;
+import ru.yandex.practicum.filmorate.repository.like.LikeFilmsRepository;
 
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Transactional
 @Slf4j
 @Service
 @AllArgsConstructor
 public class FilmServiceImpl implements FilmService {
-    private final Storage<Film> filmStorage;
+    private final FilmRepository filmStorage;
 
     private final UserService userService;
 
-    private final LikeFilmsStorage likeFilms;
+    private final LikeFilmsRepository likeFilms;
 
+    @Transactional
     public Film addFilm(Film film) {
         try {
             validateFilm(film);
@@ -50,38 +50,47 @@ public class FilmServiceImpl implements FilmService {
         return filmStorage.getById(filmId);
     }
 
+    @Transactional
     public Film updateFilm(Film updatedFilm) {
         if (!filmStorage.isExist(updatedFilm.getId())) {
+            log.debug("Поступил запрос на обновление не существующего фильма с id {}", updatedFilm);
             throw new NotFoundException("Фильм не найден.");
         }
         validateFilm(updatedFilm);
         Film updated = filmStorage.update(updatedFilm);
         log.info("Фильм обновлен: {}", updated);
         return updated;
-
     }
 
+    @Transactional
     public void likeFilm(Integer filmId, Integer userId) {
         if (!userService.isExist(userId)) {
+            log.debug("Поступил запрос на добавление лайка от несуществующего пользователя с id {}.", userId);
             throw new NotFoundException(String.format("Пользователь с id %d не зарегистрирован.", userId));
         }
         if (!filmStorage.isExist(filmId)) {
+            log.debug("Поступил запрос на добавление лайка у несуществующего фильма с id {}.", filmId);
             throw new NotFoundException(String.format("Фильм с id %d не не существует.", filmId));
         }
         if (!likeFilms.isExistLike(filmId, userId)) {
+            log.debug("Повторный лайк от пользователя с id {}.", userId);
             throw new NotFoundException(String.format("Лайк от пользователя %d уже есть.", userId));
         }
         likeFilms.likeForFilm(filmId, userId);
     }
 
+    @Transactional
     public void unlikeFilm(Integer filmId, Integer userId) {
         if (!userService.isExist(userId)) {
+            log.debug("Поступил запрос на удаление лайка от несуществующего пользователя с id {}", userId);
             throw new NotFoundException(String.format("Пользователь с id %d не зарегистрирован.", userId));
         }
         if (!filmStorage.isExist(filmId)) {
+            log.debug("Поступил запрос на удаление лайка у несуществующего фильма с id {}", filmId);
             throw new NotFoundException(String.format("Фильм с id %d не не существует.", filmId));
         }
         if (likeFilms.isExistLike(filmId, userId)) {
+            log.debug("Лайка от пользователя с id {} нету.", userId);
             throw new NotFoundException(String.format("Лайка от пользователя %d еще нет.", userId));
         }
         likeFilms.dislikeForFilm(filmId, userId);
@@ -96,7 +105,12 @@ public class FilmServiceImpl implements FilmService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     public Film remove(Integer filmId) {
+        if (filmStorage.getById(filmId) == null) {
+            log.debug("Фильм равен null id {}", filmId);
+            throw new NotFoundException("Фильм равен null");
+        }
         log.info("Удаление фильма с ID {} ", filmId);
         return filmStorage.remove(filmId);
     }

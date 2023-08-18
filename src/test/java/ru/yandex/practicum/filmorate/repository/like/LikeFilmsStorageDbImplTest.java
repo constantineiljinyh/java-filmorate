@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.storage.like;
+package ru.yandex.practicum.filmorate.repository.like;
 
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,8 +10,8 @@ import org.springframework.test.annotation.DirtiesContext;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.RatingMPA;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.film.FilmStorageDbImpl;
-import ru.yandex.practicum.filmorate.storage.user.UserStorageDbImpl;
+import ru.yandex.practicum.filmorate.repository.film.FilmRepository;
+import ru.yandex.practicum.filmorate.repository.user.UserRepository;
 
 import java.time.LocalDate;
 
@@ -23,13 +23,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 class LikeFilmsStorageDbImplTest {
     @Autowired
-    private LikeFilmsStorageDbImpl likeFilmsStorageDb;
+    private LikeFilmsRepository likeFilmsStorageDb;
 
     @Autowired
-    private FilmStorageDbImpl filmDbStorage;
+    private FilmRepository filmDbStorage;
 
     @Autowired
-    private UserStorageDbImpl userDbStorage;
+    private UserRepository userDbStorage;
 
     @BeforeEach
     public void setUp() {

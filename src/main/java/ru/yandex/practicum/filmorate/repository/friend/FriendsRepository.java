@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.storage.friend;
+package ru.yandex.practicum.filmorate.repository.friend;
 
 import lombok.AllArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -9,7 +9,7 @@ import java.util.List;
 
 @Component
 @AllArgsConstructor
-public class FriendsStorageDbImpl implements FriendsStorage {
+public class FriendsRepository  {
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -63,7 +63,6 @@ public class FriendsStorageDbImpl implements FriendsStorage {
         return commonFriends;
     }
 
-    @Override
     public boolean areFriends(Integer userId, Integer friendId) {
         String sql = "SELECT COUNT(*) FROM friends WHERE (id_user = ? AND id_friend = ?) OR (id_user = ? AND id_friend = ?)";
         Integer count = jdbcTemplate.queryForObject(sql, Integer.class, userId, friendId, friendId, userId);

@@ -12,7 +12,7 @@ import javax.validation.constraints.PastOrPresent;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.Size;
 import java.time.LocalDate;
-import java.util.Set;
+import java.util.LinkedHashSet;
 
 @Data
 @AllArgsConstructor
@@ -41,7 +41,7 @@ public class Film {
 
     private Integer rate;
 
-    private Set<Genre> genres;
+    private LinkedHashSet<Genre> genres;
 
     @NotNull
     private RatingMPA mpa;

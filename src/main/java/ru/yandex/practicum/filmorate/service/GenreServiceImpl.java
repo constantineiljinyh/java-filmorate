@@ -3,19 +3,17 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.storage.ClassificationStorage;
+import ru.yandex.practicum.filmorate.repository.genre.GenreFilmRepository;
 
 import java.util.List;
 
-@Transactional
 @Slf4j
 @Service
 @AllArgsConstructor
 public class GenreServiceImpl implements ClassificationService<Genre> {
-    private final ClassificationStorage<Genre> genreStorage;
+    private final GenreFilmRepository genreStorage;
 
     public List<Genre> getAll() {
         log.debug("Обрабатываем запрос на просмотр всех жанров фильмов.");

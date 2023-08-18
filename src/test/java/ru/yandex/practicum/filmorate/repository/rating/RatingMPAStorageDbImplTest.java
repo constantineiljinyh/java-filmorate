@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.storage.rating;
+package ru.yandex.practicum.filmorate.repository.rating;
 
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class RatingMPAStorageDbImplTest {
 
     @Autowired
-    private RatingMPAStorageDbImpl ratingMPAStorageDb;
+    private RatingMPARepository ratingMPAStorageDb;
 
     @Test
     public void testGetAllRatings() {

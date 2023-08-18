@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.storage.film;
+package ru.yandex.practicum.filmorate.repository.film;
 
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Primary;
@@ -12,32 +12,32 @@ import org.springframework.web.server.ResponseStatusException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.storage.Storage;
-import ru.yandex.practicum.filmorate.storage.genre.GenreFilmStorageDbImpl;
-import ru.yandex.practicum.filmorate.storage.like.LikeFilmsStorage;
-import ru.yandex.practicum.filmorate.storage.rating.RatingMPAStorageDbImpl;
+import ru.yandex.practicum.filmorate.repository.genre.GenreFilmRepository;
+import ru.yandex.practicum.filmorate.repository.like.LikeFilmsRepository;
+import ru.yandex.practicum.filmorate.repository.rating.RatingMPARepository;
 
 import java.sql.PreparedStatement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
-import static ru.yandex.practicum.filmorate.storage.ModelMapper.createInsertFilmStatement;
-import static ru.yandex.practicum.filmorate.storage.ModelMapper.mapperGetFilms;
+import static ru.yandex.practicum.filmorate.repository.ModelMapper.createInsertFilmStatement;
+import static ru.yandex.practicum.filmorate.repository.ModelMapper.mapperGetFilms;
 
 @Component
 @Primary
 @AllArgsConstructor
-public class FilmStorageDbImpl implements Storage<Film> {
+public class FilmRepository {
 
     private final JdbcTemplate jdbcTemplate;
-    private final GenreFilmStorageDbImpl genreDbStorage;
-    private final RatingMPAStorageDbImpl ratingMpaDbStorage;
 
-    private final LikeFilmsStorage likeFilms;
+    private final GenreFilmRepository genreDbStorage;
 
-    @Override
+    private final RatingMPARepository ratingMpaDbStorage;
+
+    private final LikeFilmsRepository likeFilms;
+
     public Film add(Film film) {
         if (film == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Пустой фильм");
@@ -65,7 +65,7 @@ public class FilmStorageDbImpl implements Storage<Film> {
             }
         }
 
-        Set<Genre> filmGenres = genreDbStorage.getForFilm(generatedId);
+        LinkedHashSet<Genre> filmGenres = genreDbStorage.getForFilm(generatedId);
         film.setGenres(filmGenres);
 
         return film;
@@ -86,7 +86,6 @@ public class FilmStorageDbImpl implements Storage<Film> {
         return jdbcTemplate.query(selectSql, mapperGetFilms()).stream().findFirst().orElse(new ArrayList<>());
     }
 
-    @Override
     public Film update(Film updatedFilm) {
         String updateSql = "UPDATE films SET duration = ?, name = ?, description = ?, rating = ?, release_date = ?, id_ratingMPA = ? WHERE id = ?";
 
@@ -112,7 +111,7 @@ public class FilmStorageDbImpl implements Storage<Film> {
                 }
             }
 
-            Set<Genre> filmGenres = genreDbStorage.getForFilm(updatedFilm.getId());
+            LinkedHashSet<Genre> filmGenres = genreDbStorage.getForFilm(updatedFilm.getId());
             updatedFilm.setGenres(filmGenres);
 
             return updatedFilm;
@@ -121,7 +120,6 @@ public class FilmStorageDbImpl implements Storage<Film> {
         }
     }
 
-    @Override
     public Film getById(Integer filmId) {
         String selectSql = "SELECT f.id, f.duration, f.name, f.description, f.rating, f.release_date, f.id_ratingMPA FROM films f WHERE f.id = ?";
         try {
@@ -144,7 +142,6 @@ public class FilmStorageDbImpl implements Storage<Film> {
         }
     }
 
-    @Override
     public Film remove(Integer filmId) {
         Film filmToRemove = getById(filmId);
 
@@ -158,7 +155,6 @@ public class FilmStorageDbImpl implements Storage<Film> {
         return filmToRemove;
     }
 
-    @Override
     public boolean isExist(int id) {
         String sql = "SELECT EXISTS (SELECT id " +
                 "FROM films " +

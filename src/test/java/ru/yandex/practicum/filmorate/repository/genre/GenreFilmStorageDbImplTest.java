@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.storage.genre;
+package ru.yandex.practicum.filmorate.repository.genre;
 
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
@@ -9,7 +9,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.RatingMPA;
-import ru.yandex.practicum.filmorate.storage.film.FilmStorageDbImpl;
+import ru.yandex.practicum.filmorate.repository.film.FilmRepository;
 
 import java.time.LocalDate;
 import java.util.Collections;
@@ -29,10 +29,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 class GenreFilmStorageDbImplTest {
     @Autowired
-    private FilmStorageDbImpl filmDbStorage;
+    private FilmRepository filmDbStorage;
 
     @Autowired
-    private GenreFilmStorageDbImpl genreDbStorage;
+    private GenreFilmRepository genreDbStorage;
 
     @Test
     public void testGetAllGenres() {
@@ -61,7 +61,7 @@ class GenreFilmStorageDbImplTest {
                 .duration(120)
                 .mpa(new RatingMPA(1, "G"))
                 .rate(5)
-                .genres(new HashSet<>(Collections.singletonList(genre)))
+                .genres(new LinkedHashSet<>(Collections.singletonList(genre)))
                 .build();
 
         Film addedFilm = filmDbStorage.add(filmToAdd);

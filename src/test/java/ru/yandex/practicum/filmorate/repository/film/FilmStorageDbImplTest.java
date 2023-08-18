@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.storage.film;
+package ru.yandex.practicum.filmorate.repository.film;
 
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
@@ -13,7 +13,7 @@ import ru.yandex.practicum.filmorate.model.RatingMPA;
 
 import java.time.LocalDate;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -28,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 class FilmStorageDbImplTest {
     @Autowired
-    private FilmStorageDbImpl filmDbStorage;
+    private FilmRepository filmDbStorage;
 
     @Test
     public void testAddFilm() {
@@ -148,7 +148,7 @@ class FilmStorageDbImplTest {
                 .duration(120)
                 .mpa(new RatingMPA(1, "G"))
                 .rate(5)
-                .genres(new HashSet<>(Collections.singletonList(genre)))
+                .genres(new LinkedHashSet<>(Collections.singletonList(genre)))
                 .build();
 
         Film addedFilm = filmDbStorage.add(filmToAdd);
@@ -232,7 +232,7 @@ class FilmStorageDbImplTest {
                 .duration(120)
                 .mpa(new RatingMPA(1, "G"))
                 .rate(5)
-                .genres(new HashSet<>(Collections.singletonList(genre)))
+                .genres(new LinkedHashSet<>(Collections.singletonList(genre)))
                 .build();
 
         Film addedFilm = filmDbStorage.add(filmToAdd);

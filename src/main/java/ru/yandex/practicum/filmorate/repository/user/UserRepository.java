@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.storage.user;
+package ru.yandex.practicum.filmorate.repository.user;
 
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Primary;
@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.Storage;
 
 import java.sql.PreparedStatement;
 import java.sql.Statement;
@@ -20,11 +19,10 @@ import java.util.List;
 @Component
 @Primary
 @AllArgsConstructor
-public class UserStorageDbImpl implements Storage<User> {
+public class UserRepository {
 
     private final JdbcTemplate jdbcTemplate;
 
-    @Override
     public User add(User user) {
         if (user == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Пустой пользователь");
@@ -49,7 +47,6 @@ public class UserStorageDbImpl implements Storage<User> {
         return user;
     }
 
-    @Override
     public List<User> getAll() {
         String sql = "SELECT u.id, u.name, u.email, u.login, u.birthday " +
                 "FROM users u";
@@ -67,7 +64,6 @@ public class UserStorageDbImpl implements Storage<User> {
         return users;
     }
 
-    @Override
     public User update(User updateUser) {
         String updateUserSql = "UPDATE users SET name = ?, email = ?, login = ?, birthday = ? WHERE id = ?";
 
@@ -81,7 +77,6 @@ public class UserStorageDbImpl implements Storage<User> {
         return updateUser;
     }
 
-    @Override
     public User getById(Integer userId) {
         String userExistsSql = "SELECT COUNT(*) FROM users WHERE id = ?";
         int userCount = jdbcTemplate.queryForObject(userExistsSql, Integer.class, userId);
@@ -105,7 +100,6 @@ public class UserStorageDbImpl implements Storage<User> {
         }, userId);
     }
 
-    @Override
     public User remove(Integer userId) {
         String getUserByIdSql = "SELECT * FROM users WHERE id = ?";
         List<User> users = jdbcTemplate.query(getUserByIdSql, new Object[]{userId}, (rs, rowNum) -> {
@@ -130,7 +124,6 @@ public class UserStorageDbImpl implements Storage<User> {
         return userToRemove;
     }
 
-    @Override
     public boolean isExist(int id) {
         String checkId = "SELECT COUNT(id) FROM users WHERE id = ?";
         Integer count = jdbcTemplate.queryForObject(checkId, Integer.class, id);

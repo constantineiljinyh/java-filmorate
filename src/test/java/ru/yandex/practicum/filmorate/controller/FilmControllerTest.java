@@ -14,9 +14,9 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.RatingMPA;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.repository.film.FilmRepository;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.UserService;
-import ru.yandex.practicum.filmorate.storage.Storage;
 
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -35,7 +35,7 @@ class FilmControllerTest {
     private UserService userService;
 
     @Autowired
-    private Storage<Film> filmStorage;
+    private FilmRepository filmStorage;
 
     @Autowired
     private FilmController filmController;

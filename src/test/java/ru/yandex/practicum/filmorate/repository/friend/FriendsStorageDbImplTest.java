@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.storage.friend;
+package ru.yandex.practicum.filmorate.repository.friend;
 
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Assertions;
@@ -9,7 +9,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.user.UserStorageDbImpl;
+import ru.yandex.practicum.filmorate.repository.user.UserRepository;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -24,10 +24,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class FriendsStorageDbImplTest {
 
     @Autowired
-    private FriendsStorageDbImpl friendsStorageDb;
+    private FriendsRepository friendsStorageDb;
 
     @Autowired
-    private UserStorageDbImpl userDbStorage;
+    private UserRepository userDbStorage;
 
     @BeforeEach
     public void setUp() {

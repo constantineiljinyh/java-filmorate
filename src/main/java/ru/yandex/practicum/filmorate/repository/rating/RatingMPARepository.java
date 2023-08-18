@@ -1,16 +1,15 @@
-package ru.yandex.practicum.filmorate.storage.rating;
+package ru.yandex.practicum.filmorate.repository.rating;
 
 import lombok.AllArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.RatingMPA;
-import ru.yandex.practicum.filmorate.storage.ClassificationStorage;
 
 import java.util.List;
 
 @Component
 @AllArgsConstructor
-public class RatingMPAStorageDbImpl implements ClassificationStorage<RatingMPA> {
+public class RatingMPARepository {
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -19,7 +18,6 @@ public class RatingMPAStorageDbImpl implements ClassificationStorage<RatingMPA> 
                 new RatingMPA(rs.getInt("id_ratingMPA"), rs.getString("name_mpa")));
     }
 
-    @Override
     public RatingMPA getById(Integer id) {
         return jdbcTemplate.queryForObject("SELECT * FROM ratingMPA WHERE id_ratingMPA = ?", (rs, rowNum) -> {
             RatingMPA ratingMpa = new RatingMPA();
