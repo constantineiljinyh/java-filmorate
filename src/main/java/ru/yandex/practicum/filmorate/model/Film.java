@@ -1,6 +1,8 @@
 package ru.yandex.practicum.filmorate.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -10,10 +12,12 @@ import javax.validation.constraints.PastOrPresent;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.Size;
 import java.time.LocalDate;
+import java.util.LinkedHashSet;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class Film {
     private Integer id;
 
@@ -32,5 +36,13 @@ public class Film {
     @Positive(message = "Продолжительность фильма должна быть положительной")
     private Integer duration;
 
-    private int likesCount;
+    @JsonIgnore
+    private Integer likesCount;
+
+    private Integer rate;
+
+    private LinkedHashSet<Genre> genres;
+
+    @NotNull
+    private RatingMPA mpa;
 }

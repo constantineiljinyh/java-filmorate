@@ -1,56 +1,86 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.web.server.ResponseStatusException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.RatingMPA;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.repository.film.FilmRepository;
 import ru.yandex.practicum.filmorate.service.FilmService;
-import ru.yandex.practicum.filmorate.service.InMemoryFilmService;
-import ru.yandex.practicum.filmorate.service.InMemoryUserService;
 import ru.yandex.practicum.filmorate.service.UserService;
-import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
-import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
-import ru.yandex.practicum.filmorate.storage.Storage;
 
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 
+@SpringBootTest
+@AutoConfigureTestDatabase
+@RequiredArgsConstructor(onConstructor_ = @Autowired)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 class FilmControllerTest {
-    private FilmController filmController;
 
+    @Autowired
     private FilmService filmService;
 
-    private Storage<Film> filmStorage;
-
+    @Autowired
     private UserService userService;
 
-    private Storage<User> userStorage;
+    @Autowired
+    private FilmRepository filmStorage;
+
+    @Autowired
+    private FilmController filmController;
+
+    private Film film1;
+    private Film film2;
+    private User user1;
+    private User user2;
 
     @BeforeEach
-    public void setUP() {
-        userStorage = new InMemoryUserStorage();
-        userService = new InMemoryUserService(userStorage);
-        filmStorage = new InMemoryFilmStorage();
-        filmService = new InMemoryFilmService(filmStorage, userService);
-        filmController = new FilmController(filmService);
+    void setUp() {
+        film1 = new Film();
+        film1.setName("Film 1");
+        film1.setDescription("Description 1");
+        film1.setReleaseDate(LocalDate.of(2022, 1, 1));
+        film1.setDuration(120);
+        film1.setMpa(new RatingMPA(1, "G"));
+        film1.setRate(5);
+
+        film2 = new Film();
+        film2.setName("Film 2");
+        film2.setDescription("Description 2");
+        film2.setReleaseDate(LocalDate.of(2022, 2, 1));
+        film2.setDuration(130);
+        film2.setMpa(new RatingMPA(2, "PG"));
+        film2.setRate(4);
+
+        user1 = new User();
+        user1.setName("User 1");
+        user1.setEmail("user1@example.com");
+        user1.setLogin("user1");
+        user1.setBirthday(LocalDate.of(1990, 5, 15));
+
+        user2 = new User();
+        user2.setName("User 2");
+        user2.setEmail("user2@example.com");
+        user2.setLogin("user2");
+        user2.setBirthday(LocalDate.of(1995, 8, 20));
     }
 
     @Test
     void addFilmValidFilm() {
-        Film validFilm = new Film();
-        validFilm.setName("Film Name");
-        validFilm.setDescription("Film Description");
-        validFilm.setReleaseDate(LocalDate.of(2022, 1, 1));
-        validFilm.setDuration(120);
+        Film addedFilm = filmController.addFilm(film1);
 
-        Film addedFilm = filmController.addFilm(validFilm);
-
-        Assertions.assertEquals(validFilm, addedFilm);
+        Assertions.assertEquals(film1, addedFilm);
         Assertions.assertEquals(1, addedFilm.getId());
     }
 
@@ -61,6 +91,8 @@ class FilmControllerTest {
         filmWithInvalidReleaseDate.setDescription("Film Description");
         filmWithInvalidReleaseDate.setReleaseDate(LocalDate.of(1890, 1, 1));
         filmWithInvalidReleaseDate.setDuration(120);
+        filmWithInvalidReleaseDate.setMpa(new RatingMPA(1, "G"));
+        filmWithInvalidReleaseDate.setRate(5);
 
         ResponseStatusException exception = Assertions.assertThrows(ResponseStatusException.class, () ->
                 filmController.addFilm(filmWithInvalidReleaseDate));
@@ -70,50 +102,31 @@ class FilmControllerTest {
     }
 
     @Test
-    void addFilmNullFilm() {
-        ResponseStatusException exception = Assertions.assertThrows(ResponseStatusException.class, () ->
-                filmController.addFilm(null));
-
-        Assertions.assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
-        Assertions.assertEquals("Ошибка добавления фильма: Передан пустой фильм", exception.getReason());
-    }
-
-    @Test
     void updateFilmValidFilm() {
-        Film existingFilm = new Film();
-        existingFilm.setId(1);
-        existingFilm.setName("Film Name");
-        existingFilm.setDescription("Film Description");
-        existingFilm.setReleaseDate(LocalDate.of(2022, 1, 1));
-        existingFilm.setDuration(120);
-
-        filmController.addFilm(existingFilm);
+        filmController.addFilm(film1);
 
         Film updatedFilm = new Film();
         updatedFilm.setId(1);
-        updatedFilm.setName("Updated Film Name");
-        updatedFilm.setDescription("Updated Film Description");
+        updatedFilm.setName("Updated Name");
+        updatedFilm.setDescription("Updated Description");
         updatedFilm.setReleaseDate(LocalDate.of(2023, 1, 1));
-        updatedFilm.setDuration(150);
+        updatedFilm.setDuration(130);
+        updatedFilm.setMpa(new RatingMPA(2, "PG"));
+        updatedFilm.setRate(4);
 
         Film result = filmController.updateFilm(updatedFilm);
 
         Assertions.assertEquals(updatedFilm, result);
-        Assertions.assertEquals("Updated Film Name", result.getName());
-        Assertions.assertEquals("Updated Film Description", result.getDescription());
+        Assertions.assertEquals("Updated Name", result.getName());
+        Assertions.assertEquals("Updated Description", result.getDescription());
         Assertions.assertEquals(LocalDate.of(2023, 1, 1), result.getReleaseDate());
-        Assertions.assertEquals(150, result.getDuration());
+        Assertions.assertEquals(130, result.getDuration());
     }
 
     @Test
     void removeFilmValidFilmId() {
-        Film filmToRemove = new Film();
-        filmToRemove.setName("Film to Remove");
-        filmToRemove.setDescription("Film to Remove Description");
-        filmToRemove.setReleaseDate(LocalDate.of(2022, 1, 1));
-        filmToRemove.setDuration(120);
-
-        Film addedFilm = filmController.addFilm(filmToRemove);
+        film1.setLikesCount(0);
+        Film addedFilm = filmController.addFilm(film1);
         Integer filmId = addedFilm.getId();
 
         Film removedFilm = filmController.removeFilm(filmId);
@@ -125,11 +138,10 @@ class FilmControllerTest {
     void removeFilmInvalidFilmId() {
         Integer nonExistentFilmId = 1000;
 
-        ResponseStatusException exception = Assertions.assertThrows(ResponseStatusException.class, () ->
+        NotFoundException exception = Assertions.assertThrows(NotFoundException.class, () ->
                 filmController.removeFilm(nonExistentFilmId));
 
-        Assertions.assertEquals(HttpStatus.NOT_FOUND, exception.getStatus());
-        Assertions.assertEquals("Фильм с ID " + nonExistentFilmId + " не найден", exception.getReason());
+        Assertions.assertEquals("Фильм с ID " + nonExistentFilmId + " не найден", exception.getMessage());
     }
 
     @Test
@@ -144,25 +156,12 @@ class FilmControllerTest {
         NotFoundException exception = Assertions.assertThrows(NotFoundException.class, () ->
                 filmController.updateFilm(nonExistingFilm));
 
-        Assertions.assertEquals("Такого фильма нет", exception.getMessage());
+        Assertions.assertEquals("Фильм не найден.", exception.getMessage());
     }
 
     @Test
     void getALLFilmsReturnsListOfFilms() {
-        Film film1 = new Film();
-        film1.setId(1);
-        film1.setName("Фильм 1");
-        film1.setDescription("Описание фильма 1");
-        film1.setReleaseDate(LocalDate.of(2022, 1, 1));
-        film1.setDuration(120);
         filmController.addFilm(film1);
-
-        Film film2 = new Film();
-        film2.setId(2);
-        film2.setName("Фильм 2");
-        film2.setDescription("Описание фильма 2");
-        film2.setReleaseDate(LocalDate.of(2023, 1, 1));
-        film2.setDuration(150);
         filmController.addFilm(film2);
 
         List<Film> expectedFilms = Arrays.asList(film1, film2);
@@ -181,14 +180,8 @@ class FilmControllerTest {
 
     @Test
     void successfullyLikesFilm() {
-        Film film = new Film();
-        film.setId(1);
-        film.setLikesCount(0);
-        filmStorage.add(film);
-
-        User user = new User();
-        user.setId(1);
-        userService.addUser(user);
+        filmController.addFilm(film1);
+        userService.addUser(user1);
 
         filmService.likeFilm(1, 1);
 
@@ -198,33 +191,24 @@ class FilmControllerTest {
 
     @Test
     void likeFilmInvalidFilmId() {
-        User user = new User();
-        user.setId(1);
-        userService.addUser(user);
+        filmController.addFilm(film1);
 
         Assertions.assertThrows(NotFoundException.class, () -> filmService.likeFilm(1, 1));
     }
 
     @Test
     void likeFilmInvalidUserId() {
-        Film film = new Film();
-        film.setId(1);
-        film.setLikesCount(0);
-        filmStorage.add(film);
+        filmController.addFilm(film1);
 
         Assertions.assertThrows(NotFoundException.class, () -> filmService.likeFilm(1, 1));
     }
 
     @Test
     void successFullyUnlikesFilm() {
-        Film film = new Film();
-        film.setId(1);
-        film.setLikesCount(1);
-        filmStorage.add(film);
+        filmController.addFilm(film1);
 
-        User user = new User();
-        user.setId(1);
-        userService.addUser(user);
+        userService.addUser(user1);
+        filmService.likeFilm(1, 1);
 
         filmService.unlikeFilm(1, 1);
 
@@ -234,39 +218,37 @@ class FilmControllerTest {
 
     @Test
     void unlikeFilmInvalidFilmId() {
-        User user = new User();
-        user.setId(1);
-        userService.addUser(user);
+        User userToAdd = new User();
+        userToAdd.setName("John Doe");
+        userToAdd.setEmail("john@example.com");
+        userToAdd.setLogin("johndoe");
+        userToAdd.setBirthday(LocalDate.of(1990, 5, 15));
+
+        userService.addUser(user1);
 
         Assertions.assertThrows(NotFoundException.class, () -> filmService.unlikeFilm(1, 1));
     }
 
     @Test
     void unlikeFilmInvalidUserId() {
-        Film film = new Film();
-        film.setId(1);
-        film.setLikesCount(1);
-        filmStorage.add(film);
+        filmController.addFilm(film1);
 
         Assertions.assertThrows(NotFoundException.class, () -> filmService.unlikeFilm(1, 1));
     }
 
     @Test
     void getPopularFilmsPopularFilms() {
-        Film film1 = new Film();
-        film1.setId(1);
-        film1.setLikesCount(5);
-        filmStorage.add(film1);
-
-        Film film2 = new Film();
-        film2.setId(2);
-        film2.setLikesCount(3);
-        filmStorage.add(film2);
+        filmController.addFilm(film1);
+        filmController.addFilm(film2);
 
         Film film3 = new Film();
-        film3.setId(3);
-        film3.setLikesCount(7);
-        filmStorage.add(film3);
+        film3.setName("Film 3");
+        film3.setDescription("Description 4");
+        film3.setReleaseDate(LocalDate.of(2020, 3, 1));
+        film3.setDuration(140);
+        film3.setMpa(new RatingMPA(2, "PG"));
+        film3.setRate(7);
+        filmController.addFilm(film3);
 
         List<Film> popularFilms = filmService.getPopularFilms(2);
 

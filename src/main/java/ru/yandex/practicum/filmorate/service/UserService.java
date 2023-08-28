@@ -22,4 +22,6 @@ public interface UserService {
     User getUserById(Integer userId);
 
     User remove(Integer userId);
+
+    boolean isExist(Integer userId);
 }
